@@ -22,6 +22,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -291,13 +292,31 @@ public class AndroidManifestFinder {
 		componentQualifiedNames.addAll(receiverQualifiedNames);
 		componentQualifiedNames.addAll(providerQualifiedNames);
 
+		HashMap<String, String> metaDataQualifiedNames = new HashMap<String, String>();
+		NodeList metaDataNodes = documentElement.getElementsByTagName("meta-data");
+		for (int i = 0; i < metaDataNodes.getLength(); i++) {
+			Node node = metaDataNodes.item(i);
+			Node nameAttribute = node.getAttributes().getNamedItem("android:name");
+			Node valueAttribute = node.getAttributes().getNamedItem("android:value");
+
+			if (nameAttribute == null || valueAttribute == null) {
+				if (nameAttribute != null) {
+					LOGGER.warn("A malformed <meta-data> has been found in the manifest with name {}", nameAttribute.getNodeValue());
+				} else {
+					LOGGER.warn("A malformed <meta-data> has been found in the manifest");
+				}
+			} else {
+				metaDataQualifiedNames.put(nameAttribute.getNodeValue(), valueAttribute.getNodeValue());
+			}
+		}
+
 		NodeList usesPermissionNodes = documentElement.getElementsByTagName("uses-permission");
 		List<String> usesPermissionQualifiedNames = extractUsesPermissionNames(usesPermissionNodes);
 
 		List<String> permissionQualifiedNames = new ArrayList<>();
 		permissionQualifiedNames.addAll(usesPermissionQualifiedNames);
 
-		return AndroidManifest.createManifest(applicationPackage, applicationClassQualifiedName, componentQualifiedNames, permissionQualifiedNames,
+		return AndroidManifest.createManifest(applicationPackage, applicationClassQualifiedName, componentQualifiedNames, metaDataQualifiedNames, permissionQualifiedNames,
 				minSdkVersion, maxSdkVersion, targetSdkVersion, applicationDebuggableMode);
 	}
 
