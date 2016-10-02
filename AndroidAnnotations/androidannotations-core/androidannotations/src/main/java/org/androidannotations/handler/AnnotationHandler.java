@@ -29,4 +29,6 @@ public interface AnnotationHandler<T extends GeneratedClassHolder> {
 	void process(Element element, T holder) throws Exception;
 	
 	String getBeforeTarget();
+
+	boolean isEnabled();
 }
