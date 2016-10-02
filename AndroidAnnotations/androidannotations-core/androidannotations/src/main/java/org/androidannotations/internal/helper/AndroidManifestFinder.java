@@ -22,10 +22,11 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -292,7 +293,7 @@ public class AndroidManifestFinder {
 		componentQualifiedNames.addAll(receiverQualifiedNames);
 		componentQualifiedNames.addAll(providerQualifiedNames);
 
-		HashMap<String, String> metaDataQualifiedNames = new HashMap<String, String>();
+		Map<String, String> metaDataQualifiedNames = new HashMap<String, String>();
 		NodeList metaDataNodes = documentElement.getElementsByTagName("meta-data");
 		for (int i = 0; i < metaDataNodes.getLength(); i++) {
 			Node node = metaDataNodes.item(i);

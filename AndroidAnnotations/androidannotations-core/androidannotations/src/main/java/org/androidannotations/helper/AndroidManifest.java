@@ -18,12 +18,13 @@ package org.androidannotations.helper;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public final class AndroidManifest {
 
 	private final String applicationPackage;
 	private final List<String> componentQualifiedNames;
-	private final HashMap<String, String> metaDataQualifiedNames;
+	private final Map<String, String> metaDataQualifiedNames;
 	private final List<String> permissionQualifiedNames;
 	private final String applicationClassName;
 	private final boolean libraryProject;
@@ -39,7 +40,7 @@ public final class AndroidManifest {
 
 	// CHECKSTYLE:OFF
 
-	public static AndroidManifest createManifest(String applicationPackage, String applicationClassName, List<String> componentQualifiedNames, HashMap<String, String> metaDataQualifiedNames, List<String> permissionQualifiedNames, int minSdkVersion, int maxSdkVersion, int targetSdkVersion, boolean debugabble) {
+	public static AndroidManifest createManifest(String applicationPackage, String applicationClassName, List<String> componentQualifiedNames, Map<String, String> metaDataQualifiedNames, List<String> permissionQualifiedNames, int minSdkVersion, int maxSdkVersion, int targetSdkVersion, boolean debugabble) {
 		return new AndroidManifest(false, applicationPackage, applicationClassName, componentQualifiedNames, metaDataQualifiedNames, permissionQualifiedNames, minSdkVersion, maxSdkVersion, targetSdkVersion, debugabble);
 	}
 
@@ -47,7 +48,7 @@ public final class AndroidManifest {
 		return new AndroidManifest(true, applicationPackage, "", Collections.<String> emptyList(), new HashMap<String, String>(), Collections.<String> emptyList(), minSdkVersion, maxSdkVersion, targetSdkVersion, false);
 	}
 
-	private AndroidManifest(boolean libraryProject, String applicationPackage, String applicationClassName, List<String> componentQualifiedNames, HashMap<String, String> metaDataQualifiedNames, List<String> permissionQualifiedNames, int minSdkVersion, int maxSdkVersion, int targetSdkVersion, boolean debuggable) {
+	private AndroidManifest(boolean libraryProject, String applicationPackage, String applicationClassName, List<String> componentQualifiedNames, Map<String, String> metaDataQualifiedNames, List<String> permissionQualifiedNames, int minSdkVersion, int maxSdkVersion, int targetSdkVersion, boolean debuggable) {
 		this.libraryProject = libraryProject;
 		this.applicationPackage = applicationPackage;
 		this.applicationClassName = applicationClassName;
@@ -70,7 +71,7 @@ public final class AndroidManifest {
 		return Collections.unmodifiableList(componentQualifiedNames);
 	}
 
-	public HashMap<String, String> getMetaDataQualifiedNames() {
+	public Map<String, String> getMetaDataQualifiedNames() {
 		return metaDataQualifiedNames;
 	}
 
