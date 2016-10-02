@@ -1,2 +1,7 @@
 .DS_Store
 rebel.xml
+*.classpath
+/AndroidAnnotations/androidannotations-ormlite/ormlite-test/bin
+/AndroidAnnotations/androidannotations-otto/otto-test/bin
+/AndroidAnnotations/androidannotations-rest-spring/rest-spring-test/bin
+/AndroidAnnotations/androidannotations-roboguice/roboguice-test/bin
