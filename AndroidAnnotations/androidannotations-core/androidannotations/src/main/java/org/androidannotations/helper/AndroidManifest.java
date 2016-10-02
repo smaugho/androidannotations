@@ -35,7 +35,10 @@ public final class AndroidManifest {
 
 	@Override
 	public String toString() {
-		return "AndroidManifest [applicationPackage=" + applicationPackage + ", componentQualifiedNames=" + componentQualifiedNames + ", metaDataQualifiedNames=" + metaDataQualifiedNames + ", permissionQualifiedNames=" + permissionQualifiedNames + ", applicationClassName=" + applicationClassName + ", libraryProject=" + libraryProject + ", debugabble=" + debugabble + ", minSdkVersion=" + minSdkVersion + ", maxSdkVersion=" + maxSdkVersion + ", targetSdkVersion=" + targetSdkVersion + "]";
+		return "AndroidManifest [applicationPackage=" + applicationPackage + ", componentQualifiedNames=" + componentQualifiedNames 
+				+ ", metaDataQualifiedNames=" + metaDataQualifiedNames + ", permissionQualifiedNames=" + permissionQualifiedNames 
+				+ ", applicationClassName=" + applicationClassName + ", libraryProject=" + libraryProject + ", debugabble=" + debugabble 
+				+ ", minSdkVersion=" + minSdkVersion + ", maxSdkVersion=" + maxSdkVersion + ", targetSdkVersion=" + targetSdkVersion + "]";
 	}
 
 	// CHECKSTYLE:OFF
