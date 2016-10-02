@@ -1,3 +1,5 @@
+### Wrapped by [DecleX](https://github.com/smaugho/declex)
+
 # Fast Android Development. Easy maintenance.
 
 [![Android Annotations Logo](https://github.com/excilys/androidannotations/wiki/img/aa-logo.png)](https://github.com/excilys/androidannotations/wiki/Home) 
