@@ -26,7 +26,7 @@ public class FormatterFull extends Formatter {
 		stringBuilder.append(getTime()) //
 				.append(" [").append(getCurrentThread()).append("]") //
 				.append(" ").append(level.name) //
-				.append(" ").append(loggerName) //
+				// .append(" ").append(loggerName) //
 				.append(":").append(getCallerLineNumber()) //
 				.append(" - ").append(buildFullMessage(message, args));
 

@@ -63,7 +63,7 @@ public class ModelValidator {
 			validatingHolder.putRootAnnotatedElements(annotationName, validatedAnnotatedElements);
 
 			if (!annotatedElements.isEmpty()) {
-				LOGGER.debug("Validating with {}: {}", validatorSimpleName, annotatedElements);
+				LOGGER.debug("Validating with {}: {}", annotationName, annotatedElements);
 			}
 
 			for (Element annotatedElement : annotatedElements) {
@@ -82,7 +82,7 @@ public class ModelValidator {
 					validatedAnnotatedElements.add(annotatedElement);
 				} else {
 					failedValidations.add(elementValidation);
-					LOGGER.warn("Element {} invalidated by {}", annotatedElement, annotatedElement, validatorSimpleName);
+					LOGGER.warn("Element {} invalidated by {}", annotatedElement, annotationName);
 				}
 			}
 		}

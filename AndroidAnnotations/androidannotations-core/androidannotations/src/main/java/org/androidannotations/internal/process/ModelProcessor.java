@@ -88,7 +88,9 @@ public class ModelProcessor {
 			Set<AnnotatedAndRootElements> ancestorAnnotatedElements = validatedModel.getAncestorAnnotatedElements(annotationName);
 
 			if (!ancestorAnnotatedElements.isEmpty()) {
-				LOGGER.debug("Processing enclosed elements with {}: {}", annotationHandler.getClass().getSimpleName(), ancestorAnnotatedElements);
+				// LOGGER.debug("Processing enclosed elements with {}: {}",
+				// annotationHandler.getClass().getSimpleName(),
+				// ancestorAnnotatedElements);
 			}
 
 			for (AnnotatedAndRootElements elements : ancestorAnnotatedElements) {
@@ -171,7 +173,9 @@ public class ModelProcessor {
 			Set<? extends Element> annotatedElements = validatedModel.getRootAnnotatedElements(annotationName);
 
 			if (!annotatedElements.isEmpty()) {
-				LOGGER.debug("Processing root elements {}: {}", generatingAnnotationHandler.getClass().getSimpleName(), annotatedElements);
+				// LOGGER.debug("Processing root elements {}: {}",
+				// generatingAnnotationHandler.getClass().getSimpleName(),
+				// annotatedElements);
 			}
 
 			for (Element annotatedElement : annotatedElements) {
