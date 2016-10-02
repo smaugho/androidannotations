@@ -58,6 +58,11 @@ public abstract class BaseAnnotationHandler<T extends GeneratedClassHolder> impl
 	public String getTarget() {
 		return target;
 	}
+	
+	@Override
+	public String getBeforeTarget() {
+		return null;
+	}
 
 	@Override
 	public ElementValidation validate(Element element) {

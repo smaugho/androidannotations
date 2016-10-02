@@ -16,7 +16,10 @@
 package org.androidannotations.internal;
 
 import java.lang.annotation.Annotation;
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import javax.annotation.processing.ProcessingEnvironment;
@@ -60,11 +63,32 @@ public class InternalAndroidAnnotationsEnvironment implements AndroidAnnotations
 
 	public void setPlugins(List<AndroidAnnotationsPlugin> plugins) {
 		this.plugins = plugins;
+
+		
+		Map<String, AnnotationHandler<?>> tempAnnotationHandlers = new HashMap<>();
+		List<String> sortedAnnotationHandlers = new LinkedList<>();
+				
+		//Sort annotationHandlers
 		for (AndroidAnnotationsPlugin plugin : plugins) {
 			options.addAllSupportedOptions(plugin.getSupportedOptions());
+			
 			for (AnnotationHandler<?> annotationHandler : plugin.getHandlers(this)) {
-				annotationHandlers.add(annotationHandler);
+				tempAnnotationHandlers.put(annotationHandler.getTarget(), annotationHandler);
+				
+				if (annotationHandler.getBeforeTarget() != null) {
+					int indexForBeforeTarget = sortedAnnotationHandlers.indexOf(annotationHandler.getBeforeTarget());
+					if (indexForBeforeTarget != -1) {
+						sortedAnnotationHandlers.add(indexForBeforeTarget, annotationHandler.getTarget());
+						continue;
+					}
+				}
+				
+				sortedAnnotationHandlers.add(annotationHandler.getTarget());
 			}
+		}
+		
+		for (String target : sortedAnnotationHandlers) {
+			annotationHandlers.add(tempAnnotationHandlers.get(target));
 		}
 	}
 
