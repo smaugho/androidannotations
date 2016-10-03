@@ -75,7 +75,7 @@ public final class AndroidManifest {
 	}
 
 	public Map<String, String> getMetaDataQualifiedNames() {
-		return metaDataQualifiedNames;
+		return Collections.unmodifiableMap(metaDataQualifiedNames);
 	}
 
 	public List<String> getPermissionQualifiedNames() {
