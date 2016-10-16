@@ -77,7 +77,7 @@ import com.helger.jcodemodel.JVar;
 
 public class APTCodeModelHelper {
 
-	protected AndroidAnnotationsEnvironment environment;
+	private AndroidAnnotationsEnvironment environment;
 
 	public APTCodeModelHelper(AndroidAnnotationsEnvironment environment) {
 		this.environment = environment;
