@@ -70,7 +70,7 @@ public class ItemSelectHandler extends AbstractViewListenerHandler {
 	}
 
 	@Override
-	protected void processParameters(EComponentWithViewSupportHolder holder, JMethod listenerMethod, JInvocation itemSelectedCall, List<? extends VariableElement> parameters) {
+	public void processParameters(EComponentWithViewSupportHolder holder, JMethod listenerMethod, JInvocation itemSelectedCall, List<? extends VariableElement> parameters) {
 		AbstractJClass narrowAdapterViewClass = getClasses().ADAPTER_VIEW.narrow(getCodeModel().wildcard());
 		JVar onItemClickParentParam = listenerMethod.param(narrowAdapterViewClass, "parent");
 		listenerMethod.param(getClasses().VIEW, "view");
@@ -113,19 +113,19 @@ public class ItemSelectHandler extends AbstractViewListenerHandler {
 	}
 
 	@Override
-	protected JMethod createListenerMethod(JDefinedClass listenerAnonymousClass) {
+	public JMethod createListenerMethod(JDefinedClass listenerAnonymousClass) {
 		onNothingSelectedMethod = listenerAnonymousClass.method(JMod.PUBLIC, getCodeModel().VOID, "onNothingSelected");
 		onNothingSelectedMethod.annotate(Override.class);
 		return listenerAnonymousClass.method(JMod.PUBLIC, getCodeModel().VOID, "onItemSelected");
 	}
 
 	@Override
-	protected String getSetterName() {
+	public String getSetterName() {
 		return "setOnItemSelectedListener";
 	}
 
 	@Override
-	protected AbstractJClass getListenerClass(EComponentWithViewSupportHolder holder) {
+	public AbstractJClass getListenerClass(EComponentWithViewSupportHolder holder) {
 		return getClasses().ON_ITEM_SELECTED_LISTENER;
 	}
 

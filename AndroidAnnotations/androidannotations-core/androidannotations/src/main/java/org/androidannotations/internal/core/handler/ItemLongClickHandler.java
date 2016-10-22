@@ -69,7 +69,7 @@ public class ItemLongClickHandler extends AbstractViewListenerHandler {
 	}
 
 	@Override
-	protected void processParameters(EComponentWithViewSupportHolder holder, JMethod listenerMethod, JInvocation call, List<? extends VariableElement> parameters) {
+	public void processParameters(EComponentWithViewSupportHolder holder, JMethod listenerMethod, JInvocation call, List<? extends VariableElement> parameters) {
 		boolean hasItemParameter = parameters.size() == 1;
 
 		AbstractJClass narrowAdapterViewClass = getClasses().ADAPTER_VIEW.narrow(getCodeModel().wildcard());
@@ -96,17 +96,17 @@ public class ItemLongClickHandler extends AbstractViewListenerHandler {
 	}
 
 	@Override
-	protected JMethod createListenerMethod(JDefinedClass listenerAnonymousClass) {
+	public JMethod createListenerMethod(JDefinedClass listenerAnonymousClass) {
 		return listenerAnonymousClass.method(JMod.PUBLIC, getCodeModel().BOOLEAN, "onItemLongClick");
 	}
 
 	@Override
-	protected String getSetterName() {
+	public String getSetterName() {
 		return "setOnItemLongClickListener";
 	}
 
 	@Override
-	protected AbstractJClass getListenerClass(EComponentWithViewSupportHolder holder) {
+	public AbstractJClass getListenerClass(EComponentWithViewSupportHolder holder) {
 		return getClasses().ON_ITEM_LONG_CLICK_LISTENER;
 	}
 

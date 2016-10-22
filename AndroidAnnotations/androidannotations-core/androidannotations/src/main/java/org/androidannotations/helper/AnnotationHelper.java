@@ -24,6 +24,8 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.AnnotationMirror;
@@ -265,6 +267,13 @@ public class AnnotationHelper {
 
 	public String extractElementName(Element element, String annotationName) {
 		String elementName = element.getSimpleName().toString();
+		
+		//Permit enumeration in the field
+		Matcher match = Pattern.compile("((?:\\w|_|\\d|\\$)+\\w)(?:\\d+|_|_\\d+)$").matcher(elementName);
+		if (match.find()) {
+			elementName = match.group(1);
+		}
+		
 		int lastIndex = elementName.lastIndexOf(actionName(annotationName));
 		if (lastIndex != -1) {
 			elementName = elementName.substring(0, lastIndex);

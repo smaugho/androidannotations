@@ -76,7 +76,7 @@ public class PreferenceChangeHandler extends AbstractPreferenceListenerHandler {
 	}
 
 	@Override
-	protected void processParameters(HasPreferences holder, JMethod listenerMethod, JInvocation call, List<? extends VariableElement> userParameters) {
+	public void processParameters(HasPreferences holder, JMethod listenerMethod, JInvocation call, List<? extends VariableElement> userParameters) {
 		JVar preferenceParam = listenerMethod.param(holder.getBasePreferenceClass(), "preference");
 		
 		JVar newValueParam = listenerMethod.param(getClasses().OBJECT, "newValue");
@@ -106,17 +106,17 @@ public class PreferenceChangeHandler extends AbstractPreferenceListenerHandler {
 	}
 
 	@Override
-	protected JMethod createListenerMethod(JDefinedClass listenerAnonymousClass) {
+	public JMethod createListenerMethod(JDefinedClass listenerAnonymousClass) {
 		return listenerAnonymousClass.method(JMod.PUBLIC, getCodeModel().BOOLEAN, "onPreferenceChange");
 	}
 
 	@Override
-	protected String getSetterName() {
+	public String getSetterName() {
 		return "setOnPreferenceChangeListener";
 	}
 
 	@Override
-	protected AbstractJClass getListenerClass(HasPreferences holder) {
+	public AbstractJClass getListenerClass(HasPreferences holder) {
 		return holder.usingSupportV7Preference() ? getClasses().SUPPORT_V7_PREFERENCE_CHANGE_LISTENER : getClasses().PREFERENCE_CHANGE_LISTENER;
 	}
 }

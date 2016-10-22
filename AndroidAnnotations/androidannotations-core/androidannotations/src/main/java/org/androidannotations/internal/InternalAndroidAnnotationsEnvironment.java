@@ -214,4 +214,9 @@ public class InternalAndroidAnnotationsEnvironment implements AndroidAnnotations
 	public List<AndroidAnnotationsPlugin> getPlugins() {
 		return plugins;
 	}
+
+	@Override
+	public ProcessHolder getProcessHolder() {
+		return processHolder;
+	}
 }

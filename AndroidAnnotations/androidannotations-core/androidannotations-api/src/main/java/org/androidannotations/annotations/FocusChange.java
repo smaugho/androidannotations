@@ -75,7 +75,7 @@ import java.lang.annotation.Target;
  * </blockquote>
  */
 @Retention(RetentionPolicy.CLASS)
-@Target(ElementType.METHOD)
+@Target({ElementType.METHOD, ElementType.FIELD})
 public @interface FocusChange {
 
 	/**
@@ -91,4 +91,11 @@ public @interface FocusChange {
 	 * @return the resource names of the Views
 	 */
 	String[] resName() default "";
+	
+	/**
+	 * An action strings to be parsed.
+	 * 
+	 * @return the action strings
+	 */
+	String[] action() default "";
 }

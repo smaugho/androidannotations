@@ -62,8 +62,8 @@ public class SourceCodeWriter extends AbstractCodeWriter {
 			JavaFileObject sourceFile;
 
 			if (classOriginatingElements.length == 0) {
-				LOGGER.info("Generating class with no originating element: {}", qualifiedClassName);
-			}
+				LOGGER.debug("Generating class with no originating element: {}", qualifiedClassName);
+			} 
 
 			sourceFile = filer.createSourceFile(qualifiedClassName, classOriginatingElements);
 

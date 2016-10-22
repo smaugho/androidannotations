@@ -66,7 +66,7 @@ import java.lang.annotation.Target;
  * @see ItemSelect
  */
 @Retention(RetentionPolicy.CLASS)
-@Target(ElementType.METHOD)
+@Target({ElementType.METHOD, ElementType.FIELD})
 public @interface ItemClick {
 
 	/**
@@ -82,4 +82,11 @@ public @interface ItemClick {
 	 * @return the resource names of the AdapterViews
 	 */
 	String[] resName() default "";
+	
+	/**
+	 * An action strings to be parsed.
+	 * 
+	 * @return the action strings
+	 */
+	String[] action() default "";
 }

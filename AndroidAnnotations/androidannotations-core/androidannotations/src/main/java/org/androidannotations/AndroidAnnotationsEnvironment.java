@@ -74,6 +74,8 @@ public interface AndroidAnnotationsEnvironment {
 	GeneratedClassHolder getGeneratedClassHolder(Element element);
 
 	ProcessHolder.Classes getClasses();
+	
+	ProcessHolder getProcessHolder();
 
 	List<Class<? extends Annotation>> getGeneratingAnnotations();
 

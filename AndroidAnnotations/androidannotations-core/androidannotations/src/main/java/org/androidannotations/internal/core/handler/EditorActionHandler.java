@@ -72,7 +72,7 @@ public class EditorActionHandler extends AbstractViewListenerHandler {
 	}
 
 	@Override
-	protected void processParameters(EComponentWithViewSupportHolder holder, JMethod listenerMethod, JInvocation call, List<? extends VariableElement> userParameters) {
+	public void processParameters(EComponentWithViewSupportHolder holder, JMethod listenerMethod, JInvocation call, List<? extends VariableElement> userParameters) {
 		JVar textView = listenerMethod.param(getClasses().TEXT_VIEW, "textView");
 		JVar actionId = listenerMethod.param(getCodeModel().INT, "actionId");
 		JVar event = listenerMethod.param(getClasses().KEY_EVENT, "event");
@@ -90,17 +90,17 @@ public class EditorActionHandler extends AbstractViewListenerHandler {
 	}
 
 	@Override
-	protected JMethod createListenerMethod(JDefinedClass listenerAnonymousClass) {
+	public JMethod createListenerMethod(JDefinedClass listenerAnonymousClass) {
 		return listenerAnonymousClass.method(JMod.PUBLIC, getCodeModel().BOOLEAN, "onEditorAction");
 	}
 
 	@Override
-	protected String getSetterName() {
+	public String getSetterName() {
 		return "setOnEditorActionListener";
 	}
 
 	@Override
-	protected AbstractJClass getListenerClass(EComponentWithViewSupportHolder holder) {
+	public AbstractJClass getListenerClass(EComponentWithViewSupportHolder holder) {
 		return getClasses().TEXT_VIEW_ON_EDITOR_ACTION_LISTENER;
 	}
 

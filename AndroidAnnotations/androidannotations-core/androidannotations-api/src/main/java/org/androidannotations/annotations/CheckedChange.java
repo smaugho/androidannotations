@@ -76,7 +76,7 @@ import java.lang.annotation.Target;
  * 
  */
 @Retention(RetentionPolicy.CLASS)
-@Target(ElementType.METHOD)
+@Target({ElementType.METHOD, ElementType.FIELD})
 public @interface CheckedChange {
 
 	/**
@@ -94,4 +94,11 @@ public @interface CheckedChange {
 	 * @return the resource names of the CompoundButtons
 	 */
 	String[] resName() default "";
+	
+	/**
+	 * An action strings to be parsed.
+	 * 
+	 * @return the action strings
+	 */
+	String[] action() default "";
 }

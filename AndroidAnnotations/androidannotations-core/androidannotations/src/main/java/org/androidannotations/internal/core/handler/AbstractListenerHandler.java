@@ -116,13 +116,13 @@ public abstract class AbstractListenerHandler<T extends GeneratedClassHolder> ex
 
 	protected abstract void makeCall(JBlock listenerMethodBody, JInvocation call, TypeMirror returnType);
 
-	protected abstract void processParameters(T holder, JMethod listenerMethod, JInvocation call, List<? extends VariableElement> userParameters);
+	public abstract void processParameters(T holder, JMethod listenerMethod, JInvocation call, List<? extends VariableElement> userParameters);
 
-	protected abstract JMethod createListenerMethod(JDefinedClass listenerAnonymousClass);
+	public abstract JMethod createListenerMethod(JDefinedClass listenerAnonymousClass);
 
-	protected abstract String getSetterName();
+	public abstract String getSetterName();
 
-	protected abstract AbstractJClass getListenerClass(T holder);
+	public abstract AbstractJClass getListenerClass(T holder);
 
 	protected abstract AbstractJClass getListenerTargetClass(T holder);
 

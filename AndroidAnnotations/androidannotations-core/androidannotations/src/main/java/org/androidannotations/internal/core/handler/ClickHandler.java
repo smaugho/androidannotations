@@ -59,7 +59,7 @@ public class ClickHandler extends AbstractViewListenerHandler {
 	}
 
 	@Override
-	protected void processParameters(EComponentWithViewSupportHolder holder, JMethod listenerMethod, JInvocation call, List<? extends VariableElement> parameters) {
+	public void processParameters(EComponentWithViewSupportHolder holder, JMethod listenerMethod, JInvocation call, List<? extends VariableElement> parameters) {
 		boolean hasItemParameter = parameters.size() == 1;
 
 		JVar viewParam = listenerMethod.param(getClasses().VIEW, "view");
@@ -70,17 +70,17 @@ public class ClickHandler extends AbstractViewListenerHandler {
 	}
 
 	@Override
-	protected JMethod createListenerMethod(JDefinedClass listenerAnonymousClass) {
+	public JMethod createListenerMethod(JDefinedClass listenerAnonymousClass) {
 		return listenerAnonymousClass.method(JMod.PUBLIC, getCodeModel().VOID, "onClick");
 	}
 
 	@Override
-	protected String getSetterName() {
+	public String getSetterName() {
 		return "setOnClickListener";
 	}
 
 	@Override
-	protected AbstractJClass getListenerClass(EComponentWithViewSupportHolder holder) {
+	public AbstractJClass getListenerClass(EComponentWithViewSupportHolder holder) {
 		return getClasses().VIEW_ON_CLICK_LISTENER;
 	}
 
