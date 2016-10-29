@@ -67,7 +67,7 @@ public class AndroidAnnotationProcessor extends AbstractProcessor {
 
 	private final TimeStats timeStats = new TimeStats();
 	private final ErrorHelper errorHelper = new ErrorHelper();
-	private InternalAndroidAnnotationsEnvironment androidAnnotationsEnv;
+	protected InternalAndroidAnnotationsEnvironment androidAnnotationsEnv;
 
 	protected AndroidAnnotationsPlugin getCorePlugin() {
 		return new CorePlugin();		
@@ -163,16 +163,19 @@ public class AndroidAnnotationProcessor extends AbstractProcessor {
 		AnnotationElementsHolder validatingHolder = extractedModel.validatingHolder();
 		androidAnnotationsEnv.setValidatedElements(validatingHolder);
 
-		try {
-			AndroidManifest androidManifest = extractAndroidManifest();
-			LOGGER.info("AndroidManifest.xml found: {}", androidManifest);
-
-			IRClass rClass = findRClasses(androidManifest);
-
-			androidAnnotationsEnv.setAndroidEnvironment(rClass, androidManifest);
-
-		} catch (Exception e) {
-			return;
+		//Ignore Manifest and R Class for internal build
+		if (!processingEnv.getOptions().containsKey("internal")) {
+			try {
+				AndroidManifest androidManifest = extractAndroidManifest();
+				LOGGER.info("AndroidManifest.xml found: {}", androidManifest);
+	
+				IRClass rClass = findRClasses(androidManifest);
+	
+				androidAnnotationsEnv.setAndroidEnvironment(rClass, androidManifest);
+	
+			} catch (Exception e) {
+				return;
+			}
 		}
 
 		AnnotationElements validatedModel = validateAnnotations(extractedModel, validatingHolder);

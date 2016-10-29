@@ -395,6 +395,7 @@ public class AnnotationHelper {
 		Map<? extends ExecutableElement, ? extends AnnotationValue> elementValues = annotationMirror.getElementValues();
 
 		for (Map.Entry<? extends ExecutableElement, ? extends AnnotationValue> entry : elementValues.entrySet()) {
+			
 			/*
 			 * "methodName" is unset when the default value is used
 			 */
