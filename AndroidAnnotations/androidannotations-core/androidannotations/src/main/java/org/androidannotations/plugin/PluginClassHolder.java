@@ -19,6 +19,7 @@ import javax.lang.model.element.TypeElement;
 
 import org.androidannotations.AndroidAnnotationsEnvironment;
 import org.androidannotations.holder.GeneratedClassHolder;
+import org.androidannotations.internal.process.ProcessHolder.Classes;
 
 import com.helger.jcodemodel.AbstractJClass;
 import com.helger.jcodemodel.JCodeModel;
@@ -46,6 +47,10 @@ public class PluginClassHolder<H extends GeneratedClassHolder> {
 
 	public AndroidAnnotationsEnvironment environment() {
 		return holder().getEnvironment();
+	}
+	
+	protected Classes getClasses() {
+		return environment().getClasses();
 	}
 
 	protected AbstractJClass getJClass(String fullyQualifiedClassName) {

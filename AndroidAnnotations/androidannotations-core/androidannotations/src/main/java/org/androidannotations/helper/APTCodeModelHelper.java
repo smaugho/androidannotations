@@ -87,7 +87,7 @@ public class APTCodeModelHelper {
 		return typeMirrorToJClass(type, Collections.<String, TypeMirror> emptyMap());
 	}
 
-	private AbstractJClass typeMirrorToJClass(TypeMirror type, Map<String, TypeMirror> substitute) {
+	protected AbstractJClass typeMirrorToJClass(TypeMirror type, Map<String, TypeMirror> substitute) {
 		if (type instanceof DeclaredType) {
 			return typeMirrorToJClass((DeclaredType) type, substitute);
 		} else if (type instanceof WildcardType) {
