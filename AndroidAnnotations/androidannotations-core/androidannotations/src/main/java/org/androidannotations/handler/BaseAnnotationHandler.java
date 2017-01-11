@@ -15,7 +15,10 @@
  */
 package org.androidannotations.handler;
 
+import java.lang.annotation.Annotation;
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.Element;
@@ -25,6 +28,7 @@ import javax.lang.model.util.ElementFilter;
 
 import org.androidannotations.AndroidAnnotationsEnvironment;
 import org.androidannotations.ElementValidation;
+import org.androidannotations.helper.ADIHelper;
 import org.androidannotations.helper.APTCodeModelHelper;
 import org.androidannotations.helper.IdAnnotationHelper;
 import org.androidannotations.helper.IdValidatorHelper;
@@ -40,6 +44,7 @@ public abstract class BaseAnnotationHandler<T extends GeneratedClassHolder> impl
 	protected IdAnnotationHelper annotationHelper;
 	protected IdValidatorHelper validatorHelper;
 	protected APTCodeModelHelper codeModelHelper;
+	protected ADIHelper adiHelper;
 	private AndroidAnnotationsEnvironment environment;
 
 	public BaseAnnotationHandler(Class<?> targetClass, AndroidAnnotationsEnvironment environment) {
@@ -52,6 +57,7 @@ public abstract class BaseAnnotationHandler<T extends GeneratedClassHolder> impl
 		annotationHelper = new IdAnnotationHelper(environment, target);
 		validatorHelper = new IdValidatorHelper(annotationHelper);
 		codeModelHelper = new APTCodeModelHelper(environment);
+		adiHelper = new ADIHelper(environment);
 	}
 
 	@Override
@@ -62,6 +68,17 @@ public abstract class BaseAnnotationHandler<T extends GeneratedClassHolder> impl
 	@Override
 	public String getBeforeTarget() {
 		return null;
+	}
+	
+	@Override
+	public Set<Class<? extends Annotation>> getDependencies() {
+		return Collections.emptySet();
+	}
+	
+	@Override
+	public Element dependentElement(Element element,
+			Class<? extends Annotation> dependency) {
+		return element;
 	}
 
 	@Override

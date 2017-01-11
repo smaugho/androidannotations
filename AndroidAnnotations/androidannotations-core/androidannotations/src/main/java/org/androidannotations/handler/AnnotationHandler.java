@@ -15,6 +15,9 @@
  */
 package org.androidannotations.handler;
 
+import java.lang.annotation.Annotation;
+import java.util.Set;
+
 import javax.lang.model.element.Element;
 
 import org.androidannotations.ElementValidation;
@@ -29,6 +32,10 @@ public interface AnnotationHandler<T extends GeneratedClassHolder> {
 	void process(Element element, T holder) throws Exception;
 	
 	String getBeforeTarget();
+	
+	Set<Class<? extends Annotation>> getDependencies();
+	
+	Element dependentElement(Element element, Class<? extends Annotation> dependency);
 
 	boolean isEnabled();
 }

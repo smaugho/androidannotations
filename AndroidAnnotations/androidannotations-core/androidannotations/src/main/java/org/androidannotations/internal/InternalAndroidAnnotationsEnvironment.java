@@ -16,6 +16,7 @@
 package org.androidannotations.internal;
 
 import java.lang.annotation.Annotation;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -24,6 +25,7 @@ import java.util.Set;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.Element;
+import javax.lang.model.element.TypeElement;
 
 import org.androidannotations.AndroidAnnotationsEnvironment;
 import org.androidannotations.Option;
@@ -54,6 +56,8 @@ public class InternalAndroidAnnotationsEnvironment implements AndroidAnnotations
 	private AnnotationElements validatedElements;
 
 	private ProcessHolder processHolder;
+	
+	private Map<String, Set<Class<? extends Annotation>>> adiForTypeElementNames = new HashMap<>();
 
 	InternalAndroidAnnotationsEnvironment(ProcessingEnvironment processingEnvironment) {
 		this.processingEnvironment = processingEnvironment;
@@ -218,5 +222,19 @@ public class InternalAndroidAnnotationsEnvironment implements AndroidAnnotations
 	@Override
 	public ProcessHolder getProcessHolder() {
 		return processHolder;
+	}
+	
+	@Override
+	public Set<Class<? extends Annotation>> getADIOnElement(Element element) {
+		if (!(element instanceof TypeElement)) return Collections.emptySet();
+		
+		String elementClassName = element.asType().toString();
+		if (!getADIForTypeElementNames().containsKey(elementClassName)) return Collections.emptySet();
+		
+		return getADIForTypeElementNames().get(elementClassName);
+	}
+	
+	Map<String, Set<Class<? extends Annotation>>> getADIForTypeElementNames() {
+		return adiForTypeElementNames;
 	}
 }

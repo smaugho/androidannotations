@@ -79,11 +79,13 @@ public class ValidatorHelper {
 	private final ParcelerHelper parcelerHelper;
 
 	public final ValidatorParameterHelper param;
+	public final ADIHelper adiHelper;
 
 	public ValidatorHelper(TargetAnnotationHelper targetAnnotationHelper) {
 		annotationHelper = targetAnnotationHelper;
 		param = new ValidatorParameterHelper(annotationHelper);
 		parcelerHelper = new ParcelerHelper(environment());
+		adiHelper = new ADIHelper(environment());
 	}
 
 	protected AndroidAnnotationsEnvironment environment() {
@@ -248,10 +250,10 @@ public class ValidatorHelper {
 	}
 
 	private void checkAnnotations(Element reportElement, Element element, List<Class<? extends Annotation>> validAnnotations, boolean shouldFind, ElementValidation validation) {
-
+				
 		boolean foundAnnotation = false;
-		for (Class<? extends Annotation> validAnnotation : validAnnotations) {
-			if (element.getAnnotation(validAnnotation) != null) {
+		for (Class<? extends Annotation> validAnnotation : validAnnotations) {			
+			if (adiHelper.hasAnnotation(element, validAnnotation)) {
 				foundAnnotation = true;
 				break;
 			}
@@ -291,7 +293,7 @@ public class ValidatorHelper {
 
 	public void elementHasAnnotation(Class<? extends Annotation> annotation, Element element, ElementValidation valid, String error) {
 		if (!elementHasAnnotation(annotation, element)) {
-			if (element.getAnnotation(annotation) == null) {
+			if (!adiHelper.hasAnnotation(element, annotation)) {
 				valid.addError("%s " + error + " @" + annotation.getName());
 			}
 		}

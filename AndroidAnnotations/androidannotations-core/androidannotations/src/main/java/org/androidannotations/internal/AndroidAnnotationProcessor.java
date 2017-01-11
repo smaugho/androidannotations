@@ -17,10 +17,15 @@ package org.androidannotations.internal;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.ServiceLoader;
 import java.util.Set;
 
@@ -29,8 +34,10 @@ import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
+import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.TypeElement;
 
+import org.androidannotations.handler.AnnotationHandler;
 import org.androidannotations.helper.AndroidManifest;
 import org.androidannotations.helper.ModelConstants;
 import org.androidannotations.internal.core.CorePlugin;
@@ -160,6 +167,9 @@ public class AndroidAnnotationProcessor extends AbstractProcessor {
 		}
 
 		AnnotationElementsHolder extractedModel = extractAnnotations(annotations, roundEnv);
+		
+		runAnnotationDependencyInjection(extractedModel);
+		
 		AnnotationElementsHolder validatingHolder = extractedModel.validatingHolder();
 		androidAnnotationsEnv.setValidatedElements(validatingHolder);
 
@@ -215,6 +225,100 @@ public class AndroidAnnotationProcessor extends AbstractProcessor {
 		} finally {
 			timeStats.stop("Find R Classes");
 		}
+	}
+	
+	@SuppressWarnings("unchecked")
+	private void createDependenciesTree(AnnotationHandler handler, 
+			                          Set<Class<? extends Annotation>> dependencies) {
+		
+		if (dependencies == null || dependencies.isEmpty()) return;
+		
+		Set<Class<? extends Annotation>> handlerDependies = handler.getDependencies();
+		
+		dependendingHandlers:
+		for (Class<? extends Annotation> dependency : handlerDependies) {
+			for (AnnotationHandler dependingAnnotationHandler : androidAnnotationsEnv.getHandlers()) {
+				if (dependingAnnotationHandler.getTarget().equals(dependency.getCanonicalName())) {
+					dependencies.addAll(dependingAnnotationHandler.getDependencies());
+					createDependenciesTree(dependingAnnotationHandler, dependencies);
+					continue dependendingHandlers;
+				}
+			}			
+		}
+	}
+	
+	@SuppressWarnings("unchecked")
+	private void runAnnotationDependencyInjection(AnnotationElementsHolder extractedModel) {
+		//ADI works now only to inject RootElement annotations
+		
+		timeStats.start("Run ADI");
+		
+		Map<AnnotationHandler, Set<Class<? extends Annotation>>> annotationHandlersDependencies = new HashMap<>();
+		
+		//Create the dependencies tree
+		for (AnnotationHandler annotationHandler : androidAnnotationsEnv.getHandlers()) {
+			if (!annotationHandler.isEnabled()) {
+				continue;
+			}
+
+			//Use LinkedHashSet to preserve the order of the inserted elements
+			Set<Class<? extends Annotation>> dependenciesTree = new LinkedHashSet<>(annotationHandler.getDependencies());
+			createDependenciesTree(annotationHandler, dependenciesTree);
+			if (!dependenciesTree.isEmpty()) {
+				annotationHandlersDependencies.put(annotationHandler, dependenciesTree);
+			}
+		}
+		
+		Map<String, Set<? extends Element>> annotatedElementsMap = new HashMap<>();
+		for (AnnotationHandler annotationHandler : annotationHandlersDependencies.keySet()) {
+			
+			String annotationName = annotationHandler.getTarget();
+
+			Set<? extends Element> annotatedElements = extractedModel.getRootAnnotatedElements(annotationName);
+			for (Element annotatedElement : annotatedElements) {
+								
+				Set<Class<? extends Annotation>> dependencies = annotationHandlersDependencies.get(annotationHandler);
+				for (Class<? extends Annotation> dependency : dependencies) {
+
+					Element dependentElement = annotationHandler.dependentElement(annotatedElement, dependency);
+					if (dependentElement == null) continue;
+					
+					//TODO support other kind of dependencies
+					if (!dependentElement.getKind().equals(ElementKind.CLASS)) continue;
+
+					//If not annotated with a dependency, add a 'virtual' annotation to the element
+					if (dependentElement.getAnnotation(dependency) == null) {
+						
+						Set set = annotatedElementsMap.get(dependency.getCanonicalName());
+						if (set == null) {
+							set = new HashSet<>(extractedModel.getRootAnnotatedElements(dependency.getCanonicalName()));
+							annotatedElementsMap.put(dependency.getCanonicalName(), set);
+						}
+						set.add(dependentElement);
+						
+						String elementClassName = dependentElement.asType().toString();
+						Map<String, Set<Class<? extends Annotation>>> adi = androidAnnotationsEnv.getADIForTypeElementNames();
+						
+						Set<Class<? extends Annotation>> elementAdi = adi.get(elementClassName);
+						if (elementAdi == null) {
+							elementAdi = new HashSet<>();
+							adi.put(elementClassName, elementAdi);
+						}
+						
+						elementAdi.add(dependency);
+						
+					}
+				}
+				
+			}
+		}
+		
+		//Update extractedModel
+		for (java.util.Map.Entry<String, Set<? extends Element>> entry : annotatedElementsMap.entrySet()) {
+			extractedModel.putRootAnnotatedElements(entry.getKey(), entry.getValue());
+		}
+		
+		timeStats.stop("Run ADI");		
 	}
 
 	protected AnnotationElements validateAnnotations(AnnotationElements extractedModel, AnnotationElementsHolder validatingHolder) throws ValidationException {

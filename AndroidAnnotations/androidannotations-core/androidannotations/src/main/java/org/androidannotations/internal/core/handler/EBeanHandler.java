@@ -25,7 +25,7 @@ import org.androidannotations.handler.BaseGeneratingAnnotationHandler;
 import org.androidannotations.holder.EBeanHolder;
 
 public class EBeanHandler extends BaseGeneratingAnnotationHandler<EBeanHolder> {
-
+	
 	public EBeanHandler(AndroidAnnotationsEnvironment environment) {
 		super(EBean.class, environment);
 	}
@@ -48,7 +48,7 @@ public class EBeanHandler extends BaseGeneratingAnnotationHandler<EBeanHolder> {
 
 	@Override
 	public void process(Element element, EBeanHolder holder) {
-		EBean eBeanAnnotation = element.getAnnotation(EBean.class);
+		EBean eBeanAnnotation = adiHelper.getAnnotation(element, EBean.class);
 		EBean.Scope eBeanScope = eBeanAnnotation.scope();
 		boolean hasSingletonScope = eBeanScope == EBean.Scope.Singleton;
 

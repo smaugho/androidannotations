@@ -82,4 +82,6 @@ public interface AndroidAnnotationsEnvironment {
 	boolean isAndroidAnnotation(String annotationQualifiedName);
 
 	List<AndroidAnnotationsPlugin> getPlugins();
+	
+	Set<Class<? extends Annotation>> getADIOnElement(Element element);
 }
