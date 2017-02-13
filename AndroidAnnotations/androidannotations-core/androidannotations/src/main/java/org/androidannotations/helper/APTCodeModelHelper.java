@@ -293,8 +293,8 @@ public class APTCodeModelHelper {
 			if (method.name().equals(methodName) && method.params().size() == parameters.size()) {
 				int i = 0;
 				for (JVar param : method.params()) {
-					String searchedParamType = typeMirrorToJClass(parameters.get(i).asType()).name();
-					if (!param.type().name().equals(searchedParamType)) {
+					String searchedParamType = typeMirrorToJClass(parameters.get(i).asType()).fullName();
+					if (!param.type().fullName().equals(searchedParamType)) {
 						continue method;
 					}
 					i++;
