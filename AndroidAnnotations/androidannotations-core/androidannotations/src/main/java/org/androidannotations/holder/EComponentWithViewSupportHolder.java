@@ -107,6 +107,10 @@ public abstract class EComponentWithViewSupportHolder extends EComponentHolder i
 		}
 		return onViewChangedHasViewsParam;
 	}
+	
+	public void setOnViewChangedHasViewsParam(JVar onViewChangedHasViewsParam) {
+		this.onViewChangedHasViewsParam = onViewChangedHasViewsParam;
+	}
 
 	protected void setOnViewChanged() {
 		getGeneratedClass()._implements(OnViewChangedListener.class);
