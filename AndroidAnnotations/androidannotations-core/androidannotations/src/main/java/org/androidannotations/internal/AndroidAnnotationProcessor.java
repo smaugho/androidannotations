@@ -134,7 +134,7 @@ public class AndroidAnnotationProcessor extends AbstractProcessor {
 
 		LOGGER.info("Finish processing");
 
-		LoggerContext.getInstance().close();
+		LoggerContext.getInstance().close(roundEnv.processingOver());
 		return true;
 	}
 
@@ -172,7 +172,7 @@ public class AndroidAnnotationProcessor extends AbstractProcessor {
 		AnnotationElements validatedModel = validateAnnotations(extractedModel, validatingHolder);
 
 		ModelProcessor.ProcessResult processResult = processAnnotations(validatedModel);
-
+		
 		generateSources(processResult);
 	}
 
@@ -209,7 +209,7 @@ public class AndroidAnnotationProcessor extends AbstractProcessor {
 	}
 
 	private AnnotationElements validateAnnotations(AnnotationElements extractedModel, AnnotationElementsHolder validatingHolder) {
-		timeStats.start("Validate Annotations");
+		timeStats.start("Validate Annotations"); 
 		ModelValidator modelValidator = new ModelValidator(androidAnnotationsEnv);
 		AnnotationElements validatedAnnotations = modelValidator.validate(extractedModel, validatingHolder);
 		timeStats.stop("Validate Annotations");
