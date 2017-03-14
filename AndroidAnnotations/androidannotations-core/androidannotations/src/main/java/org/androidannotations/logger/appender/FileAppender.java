@@ -57,7 +57,7 @@ public class FileAppender extends Appender {
 	}
 
 	@Override
-	public synchronized void close() {
+	public synchronized void close(boolean lastRound) {
 		if (isStreamOpened()) {
 			try {
 				outputStream.close();

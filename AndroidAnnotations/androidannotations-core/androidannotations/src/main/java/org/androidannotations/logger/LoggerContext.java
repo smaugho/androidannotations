@@ -85,9 +85,9 @@ public final class LoggerContext {
 		}
 	}
 
-	public void close() {
+	public void close(boolean lastRound) {
 		for (Appender appender : appenders) {
-			appender.close();
+			appender.close(lastRound);
 		}
 	}
 

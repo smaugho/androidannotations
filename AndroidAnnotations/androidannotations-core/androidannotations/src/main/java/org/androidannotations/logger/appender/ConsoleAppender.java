@@ -15,6 +15,9 @@
  */
 package org.androidannotations.logger.appender;
 
+import java.util.LinkedList;
+import java.util.List;
+
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
 
@@ -22,6 +25,8 @@ import org.androidannotations.logger.Level;
 import org.androidannotations.logger.formatter.FormatterFull;
 
 public class ConsoleAppender extends Appender {
+
+	private static List<String> errors = new LinkedList<>();
 
 	public ConsoleAppender() {
 		super(new FormatterFull());
@@ -32,16 +37,24 @@ public class ConsoleAppender extends Appender {
 	}
 
 	@Override
-	public void append(Level level, Element element, AnnotationMirror annotationMirror, String message) {
+	public void append(Level level, Element element,
+			AnnotationMirror annotationMirror, String message) {
+		
 		if (level.isSmaller(Level.ERROR)) {
 			System.out.println(message);
 		} else {
-			System.err.println(message);
+			errors.add(message);
 		}
 	}
 
 	@Override
-	public void close() {
+	public synchronized void close(boolean lastRound) {
+		if (lastRound) {
+			for (String error : errors) {
+				System.err.println(error);
+			}
+			errors.clear();
+		}
 	}
 
 }
