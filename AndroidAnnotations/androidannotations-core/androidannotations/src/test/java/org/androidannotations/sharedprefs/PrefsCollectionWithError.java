@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2016 eBusiness Information, Excilys Group
+ * Copyright (C) 2016-2017 the AndroidAnnotations project
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -13,22 +13,21 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package org.androidannotations.internal.exception;
+package org.androidannotations.sharedprefs;
 
-import java.util.List;
+import org.androidannotations.annotations.EBean;
+import org.androidannotations.annotations.sharedpreferences.SharedPref;
 
-import org.androidannotations.ElementValidation;
+@EBean
+public class PrefsCollectionWithError {
 
-public class ValidationException extends Exception {
+	@SharedPref(value = SharedPref.Scope.ACTIVITY_DEFAULT, name = "named_pref_activity_default")
+	public interface NamedActivityDefaultPrefs {
 
-	private final List<ElementValidation> failedValidations;
-
-	public ValidationException(List<ElementValidation> failedValidations) {
-		this.failedValidations = failedValidations;
 	}
 
-	public List<ElementValidation> getFailedValidations() {
-		return failedValidations;
-	}
+	@SharedPref(value = SharedPref.Scope.APPLICATION_DEFAULT, name = "named_pref_application_default")
+	public interface NamedApplicationDefaultPrefs {
 
+	}
 }

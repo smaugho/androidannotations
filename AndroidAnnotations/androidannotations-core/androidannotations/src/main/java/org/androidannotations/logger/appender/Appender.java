@@ -44,6 +44,6 @@ public abstract class Appender {
 
 	public abstract void append(Level level, Element element, AnnotationMirror annotationMirror, String message);
 
-	public abstract void close();
+	public abstract void close(boolean lastRound);
 
 }

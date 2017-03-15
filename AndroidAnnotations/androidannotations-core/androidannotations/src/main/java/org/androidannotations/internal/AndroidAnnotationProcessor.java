@@ -1,5 +1,6 @@
 /**
  * Copyright (C) 2010-2016 eBusiness Information, Excilys Group
+ * Copyright (C) 2016-2017 the AndroidAnnotations project
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -44,7 +45,6 @@ import org.androidannotations.internal.core.CorePlugin;
 import org.androidannotations.internal.exception.AndroidManifestNotFoundException;
 import org.androidannotations.internal.exception.ProcessingException;
 import org.androidannotations.internal.exception.RClassNotFoundException;
-import org.androidannotations.internal.exception.ValidationException;
 import org.androidannotations.internal.exception.VersionMismatchException;
 import org.androidannotations.internal.exception.VersionNotFoundException;
 import org.androidannotations.internal.generation.CodeModelGenerator;
@@ -135,8 +135,6 @@ public class AndroidAnnotationProcessor extends AbstractProcessor {
 		try {
 			checkApiAndProcessorVersions();
 			processThrowing(annotations, roundEnv);
-		} catch (ValidationException e) {
-			// We do nothing, errors have been printed by ModelValidator
 		} catch (ProcessingException e) {
 			handleException(annotations, roundEnv, e);
 		} catch (Exception e) {
@@ -147,7 +145,7 @@ public class AndroidAnnotationProcessor extends AbstractProcessor {
 
 		LOGGER.info("Finish processing");
 
-		LoggerContext.getInstance().close();
+		LoggerContext.getInstance().close(roundEnv.processingOver());
 		return true;
 	}
 
@@ -191,7 +189,7 @@ public class AndroidAnnotationProcessor extends AbstractProcessor {
 		AnnotationElements validatedModel = validateAnnotations(extractedModel, validatingHolder);
 
 		ModelProcessor.ProcessResult processResult = processAnnotations(validatedModel);
-
+		
 		generateSources(processResult);
 	}
 
@@ -321,8 +319,8 @@ public class AndroidAnnotationProcessor extends AbstractProcessor {
 		timeStats.stop("Run ADI");		
 	}
 
-	protected AnnotationElements validateAnnotations(AnnotationElements extractedModel, AnnotationElementsHolder validatingHolder) throws ValidationException {
-		timeStats.start("Validate Annotations");
+	private AnnotationElements validateAnnotations(AnnotationElements extractedModel, AnnotationElementsHolder validatingHolder) {
+		timeStats.start("Validate Annotations"); 
 		ModelValidator modelValidator = new ModelValidator(androidAnnotationsEnv);
 		AnnotationElements validatedAnnotations = modelValidator.validate(extractedModel, validatingHolder);
 		timeStats.stop("Validate Annotations");
