@@ -46,9 +46,7 @@ public class MessagerAppender extends Appender {
 	}
 
 	@Override
-	public void append(Level level, Element element,
-			AnnotationMirror annotationMirror, String message) {
-		
+	public void append(Level level, Element element, AnnotationMirror annotationMirror, String message) {
 		if (messager == null) {
 			return;
 		}
@@ -65,7 +63,8 @@ public class MessagerAppender extends Appender {
 	public synchronized void close(boolean lastRound) {
 		if (lastRound) {
 			for (Message error : errors) {
-				messager.printMessage(error.kind, error.message, error.getElement(), error.annotationMirror);
+				ElementDetails elementDetails = error.getElementDetails();
+				messager.printMessage(error.kind, error.message, elementDetails.getElement(), elementDetails.getAnnotationMirror());
 			}
 			errors.clear();
 		}
@@ -88,16 +87,15 @@ public class MessagerAppender extends Appender {
 	}
 
 	private class Message {
-		Kind kind;
-		String message;
-		AnnotationMirror annotationMirror;
-		List<String> elements = new LinkedList<>();
+		private final Kind kind;
+		private final String message;
+		private final String annotationMirrorString;
+		private final List<String> elements = new LinkedList<>();
 
 		Message(Kind kind, String message, Element element, AnnotationMirror annotationMirror) {
-			super();
 			this.kind = kind;
 			this.message = message;
-			this.annotationMirror = annotationMirror;
+			this.annotationMirrorString = annotationMirror == null ? null : annotationMirror.toString();
 
 			if (element != null) {
 				Element enclosingElement = element;
@@ -108,26 +106,40 @@ public class MessagerAppender extends Appender {
 			}
 		}
 
-		public Element getElement() {
+		private AnnotationMirror getAnnotationMirror(Element element) {
+			if (element == null) {
+				return null;
+			}
+
+			for (AnnotationMirror mirror : element.getAnnotationMirrors()) {
+				if (mirror.toString().equals(annotationMirrorString)) {
+					return mirror;
+				}
+			}
+			return null;
+		}
+
+		private Element getElement() {
 			if (elements.isEmpty()) {
 				return null;
 			}
 
-			Element element = processingEnv.getElementUtils().getTypeElement(elements.remove(0));
-			while (elements.size() > 0) {
+			List<String> localElements = new LinkedList<>(elements);
+			Element element = processingEnv.getElementUtils().getTypeElement(localElements.remove(0));
+			while (localElements.size() > 0) {
 				if (element instanceof ExecutableElement) {
 					ExecutableElement method = (ExecutableElement) element;
 					for (VariableElement param : method.getParameters()) {
-						if (param.toString().equals(elements.get(0))) {
-							elements.remove(0);
+						if (param.toString().equals(localElements.get(0))) {
+							localElements.remove(0);
 							element = param;
 							break;
 						}
 					}
 				} else {
 					for (Element elem : element.getEnclosedElements()) {
-						if (elem.toString().equals(elements.get(0))) {
-							elements.remove(0);
+						if (elem.toString().equals(localElements.get(0))) {
+							localElements.remove(0);
 							element = elem;
 							break;
 						}
@@ -138,6 +150,27 @@ public class MessagerAppender extends Appender {
 			return element;
 		}
 
+		private ElementDetails getElementDetails() {
+			Element element = getElement();
+			return new ElementDetails(element, getAnnotationMirror(element));
+		}
 	}
 
+	private class ElementDetails {
+		private final Element element;
+		private final AnnotationMirror annotationMirror;
+
+		ElementDetails(Element element, AnnotationMirror annotationMirror) {
+			this.element = element;
+			this.annotationMirror = annotationMirror;
+		}
+
+		public Element getElement() {
+			return element;
+		}
+
+		public AnnotationMirror getAnnotationMirror() {
+			return annotationMirror;
+		}
+	}
 }
