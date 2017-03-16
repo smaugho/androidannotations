@@ -1,5 +1,4 @@
 /**
- * Copyright (C) 2010-2016 eBusiness Information, Excilys Group
  * Copyright (C) 2016-2017 the AndroidAnnotations project
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
@@ -14,20 +13,23 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package org.androidannotations.holder;
+package org.androidannotations.test;
 
-import com.helger.jcodemodel.JBlock;
-import com.helger.jcodemodel.JMethod;
-import com.helger.jcodemodel.JVar;
+import java.util.List;
 
-public interface HasInstanceState extends GeneratedClassHolder {
-	JBlock getSaveStateMethodBody();
+import org.androidannotations.annotations.EActivity;
+import org.androidannotations.annotations.ViewsById;
 
-	JVar getSaveStateBundleParam();
+import android.app.Activity;
+import android.widget.TextView;
 
-	JMethod getRestoreStateMethod();
+@EActivity(R.layout.views_injected)
+public class ViewsInjectionOrderActivity extends Activity {
 
-	JBlock getRestoreStateMethodBody();
+	List<TextView> methodInjectedViews;
 
-	JVar getRestoreStateBundleParam();
+	@ViewsById({ R.id.my_text_view, R.id.someView })
+	void methodInjectedViews(List<TextView> someView) {
+		methodInjectedViews = someView;
+	}
 }
