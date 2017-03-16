@@ -1,5 +1,6 @@
 /**
  * Copyright (C) 2010-2016 eBusiness Information, Excilys Group
+ * Copyright (C) 2016-2017 the AndroidAnnotations project
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -21,6 +22,9 @@ import java.util.List;
 import javax.annotation.processing.Messager;
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
+import javax.lang.model.element.ElementKind;
+import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.element.VariableElement;
 import javax.tools.Diagnostic.Kind;
 
 import org.androidannotations.logger.Level;
@@ -61,8 +65,7 @@ public class MessagerAppender extends Appender {
 	public synchronized void close(boolean lastRound) {
 		if (lastRound) {
 			for (Message error : errors) {
-				messager.printMessage(error.kind, error.message,
-						error.element, error.annotationMirror);
+				messager.printMessage(error.kind, error.message, error.getElement(), error.annotationMirror);
 			}
 			errors.clear();
 		}
@@ -87,16 +90,52 @@ public class MessagerAppender extends Appender {
 	private class Message {
 		Kind kind;
 		String message;
-		Element element;
 		AnnotationMirror annotationMirror;
+		List<String> elements = new LinkedList<>();
 
-		Message(Kind kind, String message, Element element,
-				AnnotationMirror annotationMirror) {
+		Message(Kind kind, String message, Element element, AnnotationMirror annotationMirror) {
 			super();
 			this.kind = kind;
 			this.message = message;
-			this.element = element;
 			this.annotationMirror = annotationMirror;
+
+			if (element != null) {
+				Element enclosingElement = element;
+				do {
+					elements.add(0, enclosingElement.toString());
+					enclosingElement = enclosingElement.getEnclosingElement();
+				} while (!enclosingElement.getKind().equals(ElementKind.PACKAGE));
+			}
+		}
+
+		public Element getElement() {
+			if (elements.isEmpty()) {
+				return null;
+			}
+
+			Element element = processingEnv.getElementUtils().getTypeElement(elements.remove(0));
+			while (elements.size() > 0) {
+				if (element instanceof ExecutableElement) {
+					ExecutableElement method = (ExecutableElement) element;
+					for (VariableElement param : method.getParameters()) {
+						if (param.toString().equals(elements.get(0))) {
+							elements.remove(0);
+							element = param;
+							break;
+						}
+					}
+				} else {
+					for (Element elem : element.getEnclosedElements()) {
+						if (elem.toString().equals(elements.get(0))) {
+							elements.remove(0);
+							element = elem;
+							break;
+						}
+					}
+				}
+			}
+
+			return element;
 		}
 
 	}
