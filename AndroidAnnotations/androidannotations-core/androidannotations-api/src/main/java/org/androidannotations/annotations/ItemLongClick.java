@@ -82,11 +82,4 @@ public @interface ItemLongClick {
 	 * @return the resource names of the AdapterViews
 	 */
 	String[] resName() default "";
-	
-	/**
-	 * An action strings to be parsed.
-	 * 
-	 * @return the action strings
-	 */
-	String[] action() default "";
 }
