@@ -34,6 +34,7 @@ import org.androidannotations.helper.IdAnnotationHelper;
 import org.androidannotations.helper.IdValidatorHelper;
 import org.androidannotations.holder.GeneratedClassHolder;
 import org.androidannotations.internal.process.ProcessHolder;
+import org.androidannotations.plugin.AndroidAnnotationsPlugin;
 
 import com.helger.jcodemodel.AbstractJClass;
 import com.helger.jcodemodel.JCodeModel;
@@ -46,6 +47,8 @@ public abstract class BaseAnnotationHandler<T extends GeneratedClassHolder> impl
 	protected APTCodeModelHelper codeModelHelper;
 	protected ADIHelper adiHelper;
 	private AndroidAnnotationsEnvironment environment;
+	
+	private AndroidAnnotationsPlugin androidAnnotationsPlugin;
 
 	public BaseAnnotationHandler(Class<?> targetClass, AndroidAnnotationsEnvironment environment) {
 		this(targetClass.getCanonicalName(), environment);
@@ -58,6 +61,16 @@ public abstract class BaseAnnotationHandler<T extends GeneratedClassHolder> impl
 		validatorHelper = new IdValidatorHelper(annotationHelper);
 		codeModelHelper = new APTCodeModelHelper(environment);
 		adiHelper = new ADIHelper(environment);
+	}
+	
+	@Override
+	public void setAndroidAnnotationPlugin(AndroidAnnotationsPlugin plugin) {
+		this.androidAnnotationsPlugin = plugin;
+	}
+	
+	@Override
+	public AndroidAnnotationsPlugin getAndroidAnnotationPlugin() {
+		return this.androidAnnotationsPlugin;	
 	}
 
 	@Override

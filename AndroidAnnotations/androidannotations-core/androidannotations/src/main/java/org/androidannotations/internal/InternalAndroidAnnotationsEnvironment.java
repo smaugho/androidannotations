@@ -78,6 +78,7 @@ public class InternalAndroidAnnotationsEnvironment implements AndroidAnnotations
 			
 			for (AnnotationHandler<?> annotationHandler : plugin.getHandlers(this)) {
 				tempAnnotationHandlers.put(annotationHandler.getTarget(), annotationHandler);
+				annotationHandler.setAndroidAnnotationPlugin(plugin);
 				
 				if (annotationHandler.getBeforeTarget() != null) {
 					int indexForBeforeTarget = sortedAnnotationHandlers.indexOf(annotationHandler.getBeforeTarget());

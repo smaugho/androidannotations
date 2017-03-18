@@ -67,21 +67,31 @@ public class ModelValidator {
 			}
 
 			for (Element annotatedElement : annotatedElements) {
-				ElementValidation elementValidation = annotationHandler.validate(annotatedElement);
+				try {
+					ElementValidation elementValidation = annotationHandler.validate(annotatedElement);
 
-				AnnotationMirror annotationMirror = elementValidation.getAnnotationMirror();
-				for (ElementValidation.Error error : elementValidation.getErrors()) {
-					LOGGER.error(error.getMessage(), error.getElement(), annotationMirror);
-				}
+					AnnotationMirror annotationMirror = elementValidation.getAnnotationMirror();
+					for (ElementValidation.Error error : elementValidation.getErrors()) {
+						LOGGER.error(error.getMessage(), error.getElement(), annotationMirror);
+					}
 
-				for (String warning : elementValidation.getWarnings()) {
-					LOGGER.warn(warning, elementValidation.getElement(), annotationMirror);
-				}
+					for (String warning : elementValidation.getWarnings()) {
+						LOGGER.warn(warning, elementValidation.getElement(), annotationMirror);
+					}
 
-				if (elementValidation.isValid()) {
-					validatedAnnotatedElements.add(annotatedElement);
-				} else {
-					LOGGER.warn("Element {} invalidated by {}", annotatedElement, annotationName);
+					if (elementValidation.isValid()) {
+						validatedAnnotatedElements.add(annotatedElement);
+					} else {
+						LOGGER.warn("Element {} invalidated by {}", annotatedElement, annotationName);
+					}					
+				} catch (Throwable e) {
+					LOGGER.error(
+							"Internal crash while validating element {} with annotation {}. \n"
+							 + "Please report this in " 
+							 + annotationHandler.getAndroidAnnotationPlugin().getIssuesUrl(), 
+							 annotatedElement, annotationName
+						 );
+					LOGGER.error("Crash Report: {}", e);
 				}
 			}
 		}

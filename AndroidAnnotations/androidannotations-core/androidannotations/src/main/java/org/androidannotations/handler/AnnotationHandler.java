@@ -22,10 +22,15 @@ import javax.lang.model.element.Element;
 
 import org.androidannotations.ElementValidation;
 import org.androidannotations.holder.GeneratedClassHolder;
+import org.androidannotations.plugin.AndroidAnnotationsPlugin;
 
 public interface AnnotationHandler<T extends GeneratedClassHolder> {
 
 	String getTarget();
+	
+	AndroidAnnotationsPlugin getAndroidAnnotationPlugin();
+	
+	void setAndroidAnnotationPlugin(AndroidAnnotationsPlugin plugin);
 
 	ElementValidation validate(Element element);
 
