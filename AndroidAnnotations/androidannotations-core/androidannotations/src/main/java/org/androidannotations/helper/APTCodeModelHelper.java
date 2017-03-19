@@ -198,6 +198,10 @@ public class APTCodeModelHelper {
 	}
 
 	public JMethod overrideAnnotatedMethod(ExecutableElement executableElement, GeneratedClassHolder holder) {
+		return overrideAnnotatedMethod(executableElement, holder, false);
+	}
+	
+	public JMethod overrideAnnotatedMethod(ExecutableElement executableElement, GeneratedClassHolder holder, boolean checkForAction) {
 		TypeMirror annotatedClass = holder.getAnnotatedElement().asType();
 		DeclaredType baseClass = (DeclaredType) executableElement.getEnclosingElement().asType();
 
@@ -215,18 +219,45 @@ public class APTCodeModelHelper {
 
 		actualTypes.keySet().removeAll(methodTypes.keySet());
 
-		JMethod existingMethod = findAlreadyGeneratedMethod(executableElement, holder);
+		JMethod existingMethod = findAlreadyGeneratedMethod(executableElement, holder, checkForAction);
 		if (existingMethod != null) {
 			return existingMethod;
 		}
 
 		String methodName = executableElement.getSimpleName().toString();
+		if (checkForAction && !methodName.startsWith("$")) {
+			methodName = "$" + methodName;
+		} 
+				
+		if (!checkForAction && methodName.startsWith("$")) {
+			methodName = methodName.substring(1);
+		}
+		
 		AbstractJClass returnType = typeMirrorToJClass(executableElement.getReturnType(), actualTypes);
 		int modifier = elementVisibilityModifierToJMod(executableElement);
 		JMethod method = holder.getGeneratedClass().method(modifier, returnType, methodName);
-		copyNonAAAnnotations(method, executableElement.getAnnotationMirrors());
+		
+		List<? extends AnnotationMirror> annotations = executableElement.getAnnotationMirrors();
+		
+		if (checkForAction) {
+			
+			AnnotationMirror overrideAnnotation = null;
+			for (AnnotationMirror annotation : annotations) {
+				if (annotation.toString().equals("@" + Override.class.getCanonicalName())) {
+					overrideAnnotation = annotation;
+					break;
+				}
+			}
+			
+			if (overrideAnnotation != null) {
+				annotations = new ArrayList<>(annotations);
+				annotations.remove(overrideAnnotation);
+			}
+			
+		}
+		copyNonAAAnnotations(method, annotations);
 
-		if (!hasAnnotation(method, Override.class)) {
+		if (!checkForAction && !hasAnnotation(method, Override.class)) {
 			method.annotate(Override.class);
 		}
 
@@ -238,7 +269,7 @@ public class APTCodeModelHelper {
 		int i = 0;
 		for (VariableElement parameter : executableElement.getParameters()) {
 			boolean varParam = i == executableElement.getParameters().size() - 1 && executableElement.isVarArgs();
-			addParamToMethod(method, parameter, JMod.FINAL, actualTypes, varParam);
+			addParamToMethod(method, parameter, JMod.FINAL, actualTypes, varParam, checkForAction);
 			i++;
 		}
 
@@ -284,9 +315,19 @@ public class APTCodeModelHelper {
 		return generatedClass;
 	}
 
-	private JMethod findAlreadyGeneratedMethod(ExecutableElement executableElement, GeneratedClassHolder holder) {
+	protected JMethod findAlreadyGeneratedMethod(ExecutableElement executableElement, GeneratedClassHolder holder, boolean checkForAction) {
+		
 		JDefinedClass definedClass = holder.getGeneratedClass();
 		String methodName = executableElement.getSimpleName().toString();
+		
+		if (checkForAction && !methodName.startsWith("$")) {
+			methodName = "$" + methodName;
+		}
+		
+		if (!checkForAction && methodName.startsWith("$")) {
+			methodName = methodName.substring(1);
+		}
+		
 		List<? extends VariableElement> parameters = executableElement.getParameters();
 		// CHECKSTYLE:OFF
 		// TODO: refactor the nasty label jump
@@ -295,7 +336,16 @@ public class APTCodeModelHelper {
 				int i = 0;
 				for (JVar param : method.params()) {
 					String searchedParamType = typeMirrorToJClass(parameters.get(i).asType()).fullName();
-					if (!param.type().fullName().equals(searchedParamType)) {
+					if (searchedParamType.contains("<")) {
+						searchedParamType = searchedParamType.substring(0, searchedParamType.indexOf('<'));
+					}
+					
+					String currentParamType = param.type().fullName();
+					if (currentParamType.contains("<")) {
+						currentParamType = currentParamType.substring(0, currentParamType.indexOf('<'));
+					}
+					
+					if (!currentParamType.equals(searchedParamType)) {
 						continue method;
 					}
 					i++;
@@ -307,8 +357,12 @@ public class APTCodeModelHelper {
 		return null;
 	}
 
-	private void addParamToMethod(JMethod method, VariableElement parameter, int mod, Map<String, TypeMirror> actualTypes, boolean varParam) {
+	private void addParamToMethod(JMethod method, VariableElement parameter, int mod, Map<String, TypeMirror> actualTypes, boolean varParam, boolean checkForAction) {
 		String parameterName = parameter.getSimpleName().toString();
+		if (checkForAction) {
+			parameterName = "$" + parameterName;
+		}
+		
 		AbstractJClass parameterClass = typeMirrorToJClass(parameter.asType(), actualTypes);
 		JVar param = varParam ? method.varParam(mod, parameterClass.elementType(), parameterName) : method.param(mod, parameterClass, parameterName);
 		copyNonAAAnnotations(param, parameter.getAnnotationMirrors());

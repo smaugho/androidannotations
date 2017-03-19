@@ -72,12 +72,16 @@ public class AndroidAnnotationProcessor extends AbstractProcessor {
 
 	private String coreVersion;
 
-	private final TimeStats timeStats = new TimeStats();
 	private final ErrorHelper errorHelper = new ErrorHelper();
+	protected final TimeStats timeStats = new TimeStats();
 	protected InternalAndroidAnnotationsEnvironment androidAnnotationsEnv;
 
 	protected AndroidAnnotationsPlugin getCorePlugin() {
 		return new CorePlugin();		
+	}
+	
+	protected String getFramework() {
+		return "AndroidAnnotations";
 	}
 	
 	@Override
@@ -319,7 +323,7 @@ public class AndroidAnnotationProcessor extends AbstractProcessor {
 		timeStats.stop("Run ADI");		
 	}
 
-	private AnnotationElements validateAnnotations(AnnotationElements extractedModel, AnnotationElementsHolder validatingHolder) {
+	protected AnnotationElements validateAnnotations(AnnotationElements extractedModel, AnnotationElementsHolder validatingHolder) {
 		timeStats.start("Validate Annotations"); 
 		ModelValidator modelValidator = new ModelValidator(androidAnnotationsEnv);
 		AnnotationElements validatedAnnotations = modelValidator.validate(extractedModel, validatingHolder);
@@ -344,7 +348,7 @@ public class AndroidAnnotationProcessor extends AbstractProcessor {
 	}
 
 	private void handleException(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv, ProcessingException e) {
-		String errorMessage = errorHelper.getErrorMessage(processingEnv, e, coreVersion);
+		String errorMessage = errorHelper.getErrorMessage(processingEnv, e, getFramework(), coreVersion);
 
 		/*
 		 * Printing exception as an error on a random element. The exception is

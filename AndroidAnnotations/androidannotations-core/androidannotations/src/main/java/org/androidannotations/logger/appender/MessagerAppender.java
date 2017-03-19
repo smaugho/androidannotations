@@ -107,7 +107,7 @@ public class MessagerAppender extends Appender {
 		}
 
 		private AnnotationMirror getAnnotationMirror(Element element) {
-			if (element == null) {
+			if (element == null || annotationMirrorString == null) {
 				return null;
 			}
 
@@ -116,6 +116,7 @@ public class MessagerAppender extends Appender {
 					return mirror;
 				}
 			}
+			
 			return null;
 		}
 
@@ -124,12 +125,16 @@ public class MessagerAppender extends Appender {
 				return null;
 			}
 
+			boolean ignorePackage = false;
+			
 			List<String> localElements = new LinkedList<>(elements);
 			Element element = processingEnv.getElementUtils().getTypeElement(localElements.remove(0));
 			while (localElements.size() > 0) {
+				int prevSize = localElements.size();
+				
 				if (element instanceof ExecutableElement) {
 					ExecutableElement method = (ExecutableElement) element;
-					for (VariableElement param : method.getParameters()) {
+					for (VariableElement param : method.getParameters()) {						
 						if (param.toString().equals(localElements.get(0))) {
 							localElements.remove(0);
 							element = param;
@@ -138,12 +143,25 @@ public class MessagerAppender extends Appender {
 					}
 				} else {
 					for (Element elem : element.getEnclosedElements()) {
-						if (elem.toString().equals(localElements.get(0))) {
+						
+						String elemStringValue = elem.toString();
+						String localElement = localElements.get(0);
+						
+						if (ignorePackage) {
+							elemStringValue = elemStringValue.replaceAll("([a-zA-Z_$][a-zA-Z_$0-9]*\\.)+", "");
+							localElement = localElement.replaceAll("([a-zA-Z_$][a-zA-Z_$0-9]*\\.)+", "");
+						}
+						
+						if (elemStringValue.equals(localElement)) {
 							localElements.remove(0);
 							element = elem;
 							break;
 						}
 					}
+				}
+				
+				if (prevSize == localElements.size()) {
+					ignorePackage = true;
 				}
 			}
 

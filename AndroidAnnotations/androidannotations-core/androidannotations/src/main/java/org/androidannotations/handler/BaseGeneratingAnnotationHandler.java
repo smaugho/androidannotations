@@ -20,7 +20,6 @@ import javax.lang.model.element.TypeElement;
 
 import org.androidannotations.AndroidAnnotationsEnvironment;
 import org.androidannotations.ElementValidation;
-import org.androidannotations.holder.EComponentHolder;
 import org.androidannotations.holder.GeneratedClassHolder;
 
 import com.dspot.declex.action.ActionHelper;
@@ -43,7 +42,7 @@ public abstract class BaseGeneratingAnnotationHandler<T extends GeneratedClassHo
 	protected void validate(Element element, ElementValidation valid) {
 		validatorHelper.isNotFinal(element, valid);
 		
-		actionHelper.validate(element, valid, this);
+		actionHelper.validate(element, this);
 
 		if (isInnerClass(element)) {
 
@@ -55,11 +54,6 @@ public abstract class BaseGeneratingAnnotationHandler<T extends GeneratedClassHo
 
 			validatorHelper.enclosingElementIsNotAbstractIfNotAbstract(element, valid);
 		}
-	}
-	
-	@Override
-	public void process(Element element, T holder) {
-		actionHelper.process(element, (EComponentHolder) holder);
 	}
 
 	private boolean isInnerClass(Element element) {

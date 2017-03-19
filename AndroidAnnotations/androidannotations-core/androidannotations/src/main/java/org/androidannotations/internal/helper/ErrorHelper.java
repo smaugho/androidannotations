@@ -36,8 +36,8 @@ import org.androidannotations.internal.exception.ProcessingException;
 
 public class ErrorHelper {
 
-	public String getErrorMessage(ProcessingEnvironment processingEnv, ProcessingException e, String aaVersion) {
-		String errorMessage = "Unexpected error in AndroidAnnotations " + aaVersion + "!\n"
+	public String getErrorMessage(ProcessingEnvironment processingEnv, ProcessingException e, String framework, String aaVersion) {
+		String errorMessage = "Unexpected error in " + framework + " " + aaVersion + "!\n"
 				+ "You should check if there is already an issue about it on https://github.com/androidannotations/androidannotations/search?q=" + urlEncodedErrorMessage(e) + "&type=Issues\n"
 				+ "If none exists, please open a new one with the following content and tell us if you can reproduce it or not. "
 				+ "Don't forget to give us as much information as you can (like parts of your code in failure).\n";
