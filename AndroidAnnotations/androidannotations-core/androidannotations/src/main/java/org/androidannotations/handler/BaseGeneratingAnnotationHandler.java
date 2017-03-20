@@ -16,6 +16,7 @@
 package org.androidannotations.handler;
 
 import javax.lang.model.element.Element;
+import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.TypeElement;
 
 import org.androidannotations.AndroidAnnotationsEnvironment;
@@ -42,7 +43,9 @@ public abstract class BaseGeneratingAnnotationHandler<T extends GeneratedClassHo
 	protected void validate(Element element, ElementValidation valid) {
 		validatorHelper.isNotFinal(element, valid);
 		
-		actionHelper.validate(element, this);
+		if (element.getKind().equals(ElementKind.CLASS)) {
+			actionHelper.validate(element, this);
+		}
 
 		if (isInnerClass(element)) {
 
