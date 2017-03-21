@@ -120,6 +120,10 @@ public abstract class EComponentWithViewSupportHolder extends EComponentHolder i
 	public void setOnViewChangedHasViewsParam(JVar onViewChangedHasViewsParam) {
 		this.onViewChangedHasViewsParam = onViewChangedHasViewsParam;
 	}
+	
+	public ViewNotifierHelper getViewNotifierHelper() {
+		return viewNotifierHelper;
+	}
 
 	protected void setOnViewChanged() {
 		getGeneratedClass()._implements(OnViewChangedListener.class);
@@ -133,6 +137,10 @@ public abstract class EComponentWithViewSupportHolder extends EComponentHolder i
 		onViewChangedHasViewsParam = onViewChanged.param(HasViews.class, "hasViews");
 		AbstractJClass notifierClass = getJClass(OnViewChangedNotifier.class);
 		getInitBodyInjectionBlock().staticInvoke(notifierClass, "registerOnViewChangedListener").arg(_this());
+	}
+	
+	public boolean hasOnViewChanged() {
+		return onViewChanged != null;
 	}
 
 	public JInvocation findViewById(JFieldRef idRef) {
