@@ -325,8 +325,6 @@ public class AndroidAnnotationProcessor extends AbstractProcessor {
 
 	protected AnnotationElements validateAnnotations(AnnotationElements extractedModel, AnnotationElementsHolder validatingHolder) {
 		timeStats.start("Validate Annotations"); 
-	private AnnotationElements validateAnnotations(AnnotationElements extractedModel, AnnotationElementsHolder validatingHolder) {
-		timeStats.start("Validate Annotations");
 		ModelValidator modelValidator = new ModelValidator(androidAnnotationsEnv);
 		AnnotationElements validatedAnnotations = modelValidator.validate(extractedModel, validatingHolder);
 		timeStats.stop("Validate Annotations");
