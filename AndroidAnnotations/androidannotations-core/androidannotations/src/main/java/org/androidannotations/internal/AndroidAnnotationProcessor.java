@@ -38,6 +38,7 @@ import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.TypeElement;
 
+import org.androidannotations.AndroidAnnotationsEnvironment;
 import org.androidannotations.handler.AnnotationHandler;
 import org.androidannotations.helper.AndroidManifest;
 import org.androidannotations.helper.ModelConstants;
@@ -70,7 +71,7 @@ public class AndroidAnnotationProcessor extends AbstractProcessor {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(AndroidAnnotationProcessor.class);
 
-	private String coreVersion;
+	protected String coreVersion;
 
 	private final ErrorHelper errorHelper = new ErrorHelper();
 	protected final TimeStats timeStats = new TimeStats();
@@ -84,10 +85,18 @@ public class AndroidAnnotationProcessor extends AbstractProcessor {
 		return "AndroidAnnotations";
 	}
 	
+	protected AndroidAnnotationsEnvironment getAndroidAnnotationEnvironment() {
+		if (androidAnnotationsEnv == null) {
+			androidAnnotationsEnv = new InternalAndroidAnnotationsEnvironment(processingEnv); 
+		}
+		return androidAnnotationsEnv;
+	}
+	
 	@Override
 	public synchronized void init(ProcessingEnvironment processingEnv) {
 		super.init(processingEnv);
-		androidAnnotationsEnv = new InternalAndroidAnnotationsEnvironment(processingEnv);
+		
+		getAndroidAnnotationEnvironment();
 
 		ModelConstants.init(androidAnnotationsEnv);
 
@@ -201,7 +210,7 @@ public class AndroidAnnotationProcessor extends AbstractProcessor {
 		return roundEnv.processingOver() || annotations.size() == 0;
 	}
 
-	private AnnotationElementsHolder extractAnnotations(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
+	protected AnnotationElementsHolder extractAnnotations(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
 		timeStats.start("Extract Annotations");
 		ModelExtractor modelExtractor = new ModelExtractor();
 		AnnotationElementsHolder extractedModel = modelExtractor.extract(annotations, getSupportedAnnotationTypes(), roundEnv);

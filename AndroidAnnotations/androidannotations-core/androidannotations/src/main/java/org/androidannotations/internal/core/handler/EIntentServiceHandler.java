@@ -26,10 +26,16 @@ import org.androidannotations.handler.BaseAnnotationHandler;
 import org.androidannotations.handler.GeneratingAnnotationHandler;
 import org.androidannotations.holder.EIntentServiceHolder;
 
+import com.dspot.declex.action.ActionHelper;
+import com.dspot.declex.util.TypeUtils;
+
 public class EIntentServiceHandler extends BaseAnnotationHandler<EIntentServiceHolder> implements GeneratingAnnotationHandler<EIntentServiceHolder> {
 
+	private ActionHelper actionHelper;
+	
 	public EIntentServiceHandler(AndroidAnnotationsEnvironment environment) {
 		super(EIntentService.class, environment);
+		actionHelper = ActionHelper.getInstance(environment);
 	}
 
 	@Override
@@ -39,6 +45,13 @@ public class EIntentServiceHandler extends BaseAnnotationHandler<EIntentServiceH
 
 	@Override
 	public void validate(Element element, ElementValidation validation) {
+		
+		actionHelper.validate(element, this);
+		filesCacheHelper.addGeneratedClass(
+			TypeUtils.getGeneratedClassName(element, getEnvironment()), 
+			element
+		);
+		
 		validatorHelper.extendsIntentService(element, validation);
 
 		validatorHelper.hasNotMultipleAnnotatedMethodWithSameName(element, validation, ServiceAction.class);

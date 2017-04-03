@@ -35,7 +35,7 @@ public final class FileHelper {
 		FileHolder rootProjectHolder = findRootProjectHolder(processingEnv);
 		return rootProjectHolder.projectRoot;
 	}
-
+	
 	/**
 	 * We use a dirty trick to find the AndroidManifest.xml file, since it's not
 	 * available in the classpath. The idea is quite simple : create a fake

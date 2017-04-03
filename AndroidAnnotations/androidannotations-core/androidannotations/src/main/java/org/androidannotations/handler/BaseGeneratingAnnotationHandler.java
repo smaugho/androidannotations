@@ -24,6 +24,8 @@ import org.androidannotations.ElementValidation;
 import org.androidannotations.holder.GeneratedClassHolder;
 
 import com.dspot.declex.action.ActionHelper;
+import com.dspot.declex.helper.CachedFileDetected;
+import com.dspot.declex.util.TypeUtils;
 
 public abstract class BaseGeneratingAnnotationHandler<T extends GeneratedClassHolder> extends BaseAnnotationHandler<T> implements GeneratingAnnotationHandler<T> {
 
@@ -41,11 +43,21 @@ public abstract class BaseGeneratingAnnotationHandler<T extends GeneratedClassHo
 
 	@Override
 	protected void validate(Element element, ElementValidation valid) {
+		
+		boolean isInCache = filesCacheHelper.hasCachedFile(
+			TypeUtils.getGeneratedClassName(element, getEnvironment())
+		);
+		
 		validatorHelper.isNotFinal(element, valid);
 		
 		if (element.getKind().equals(ElementKind.CLASS)) {
 			actionHelper.validate(element, this);
 		}
+		
+		filesCacheHelper.addGeneratedClass(
+			TypeUtils.getGeneratedClassName(element, getEnvironment()), 
+			element
+		);
 
 		if (isInnerClass(element)) {
 
@@ -56,6 +68,11 @@ public abstract class BaseGeneratingAnnotationHandler<T extends GeneratedClassHo
 			validatorHelper.enclosingElementHasAndroidAnnotation(element, valid);
 
 			validatorHelper.enclosingElementIsNotAbstractIfNotAbstract(element, valid);
+		}
+		
+		//If this generated file is in cache, this was called only for validation
+		if (isInCache) {
+			throw new CachedFileDetected();
 		}
 	}
 

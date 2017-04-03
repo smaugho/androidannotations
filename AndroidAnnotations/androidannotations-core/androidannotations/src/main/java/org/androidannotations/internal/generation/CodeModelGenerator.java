@@ -34,9 +34,10 @@ public class CodeModelGenerator {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(CodeModelGenerator.class);
 
-	private final Filer filer;
-	private final String header;
-	private final String encoding;
+	protected final Filer filer;
+	protected final String encoding;
+
+	protected String header;
 
 	public CodeModelGenerator(Filer filer, String aaVersion, String encoding) {
 		this.filer = filer;
@@ -56,7 +57,7 @@ public class CodeModelGenerator {
 		processResult.codeModel.build(prologCodeWriter, new ResourceCodeWriter(filer, charset));
 	}
 
-	private Charset getCharset() {
+	protected Charset getCharset() {
 		try {
 			return Charset.forName(encoding);
 		} catch (UnsupportedCharsetException exception) {

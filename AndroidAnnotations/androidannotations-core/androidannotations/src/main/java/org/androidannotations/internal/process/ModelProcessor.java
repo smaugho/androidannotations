@@ -34,6 +34,8 @@ import org.androidannotations.internal.model.AnnotationElements.AnnotatedAndRoot
 import org.androidannotations.logger.Logger;
 import org.androidannotations.logger.LoggerFactory;
 
+import com.dspot.declex.helper.FilesCacheHelper;
+import com.dspot.declex.util.TypeUtils;
 import com.helger.jcodemodel.JCodeModel;
 
 public class ModelProcessor {
@@ -98,6 +100,12 @@ public class ModelProcessor {
 
 			for (AnnotatedAndRootElements elements : ancestorAnnotatedElements) {
 				GeneratedClassHolder holder = processHolder.getGeneratedClassHolder(elements.rootTypeElement);
+				
+				//Remove Ancestors from Dependencies in File Caches
+				TypeElement rootElement = TypeUtils.getRootElement(elements.annotatedElement);
+				FilesCacheHelper.getInstance()
+				                .addAncestor(rootElement.asType().toString(), elements.rootTypeElement);
+				
 				/*
 				 * Annotations coming from ancestors may be applied to root
 				 * elements that are not validated, and therefore not available.

@@ -85,6 +85,14 @@ public class Logger {
 	}
 
 	public void error(String message, Element element, Throwable thr, Object... args) {
+		
+		if (thr != null) {
+			System.out.println("Something went wrong in the annotation processor");
+			System.out.println("--------------------");
+			thr.printStackTrace();
+			System.out.println("--------------------");
+		}
+		
 		log(Level.ERROR, message, element, null, thr, args);
 	}
 

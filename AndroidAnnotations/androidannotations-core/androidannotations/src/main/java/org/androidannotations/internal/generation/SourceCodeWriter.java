@@ -33,12 +33,13 @@ import com.helger.jcodemodel.JPackage;
 
 public class SourceCodeWriter extends AbstractCodeWriter {
 
-	private static final VoidOutputStream VOID_OUTPUT_STREAM = new VoidOutputStream();
 	private static final Logger LOGGER = LoggerFactory.getLogger(SourceCodeWriter.class);
-	private final Filer filer;
-	private OriginatingElements originatingElements;
 
-	private static class VoidOutputStream extends OutputStream {
+	protected static final VoidOutputStream VOID_OUTPUT_STREAM = new VoidOutputStream();
+	protected final Filer filer;
+	protected OriginatingElements originatingElements;
+
+	public static class VoidOutputStream extends OutputStream {
 		@Override
 		public void write(int arg0) throws IOException {
 			// Do nothing
@@ -83,7 +84,7 @@ public class SourceCodeWriter extends AbstractCodeWriter {
 		}
 	}
 
-	private String toQualifiedClassName(JPackage pkg, String fileName) {
+	protected String toQualifiedClassName(JPackage pkg, String fileName) {
 		int suffixPosition = fileName.lastIndexOf('.');
 		String className = fileName.substring(0, suffixPosition);
 
