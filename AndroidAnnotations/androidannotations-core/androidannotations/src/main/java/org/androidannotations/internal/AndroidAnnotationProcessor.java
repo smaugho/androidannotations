@@ -24,9 +24,9 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.ServiceLoader;
 import java.util.Set;
 
@@ -35,7 +35,6 @@ import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
-import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.TypeElement;
 
 import org.androidannotations.AndroidAnnotationsEnvironment;
@@ -92,6 +91,8 @@ public class AndroidAnnotationProcessor extends AbstractProcessor {
 		return androidAnnotationsEnv;
 	}
 	
+	protected void helpersInitialization() {}
+	
 	@Override
 	public synchronized void init(ProcessingEnvironment processingEnv) {
 		super.init(processingEnv);
@@ -104,6 +105,8 @@ public class AndroidAnnotationProcessor extends AbstractProcessor {
 		LoggerContext loggerContext = LoggerContext.getInstance();
 		loggerContext.setEnvironment(androidAnnotationsEnv);
 
+		helpersInitialization();
+		
 		try {
 			AndroidAnnotationsPlugin corePlugin = getCorePlugin();
 			corePlugin.loadVersion();
@@ -206,7 +209,7 @@ public class AndroidAnnotationProcessor extends AbstractProcessor {
 		generateSources(processResult);
 	}
 
-	private boolean nothingToDo(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
+	protected boolean nothingToDo(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
 		return roundEnv.processingOver() || annotations.size() == 0;
 	}
 
@@ -239,88 +242,27 @@ public class AndroidAnnotationProcessor extends AbstractProcessor {
 	}
 	
 	@SuppressWarnings("unchecked")
-	private void createDependenciesTree(AnnotationHandler handler, 
-			                          Set<Class<? extends Annotation>> dependencies) {
-		
-		if (dependencies == null || dependencies.isEmpty()) return;
-		
-		Set<Class<? extends Annotation>> handlerDependies = handler.getDependencies();
-		
-		dependendingHandlers:
-		for (Class<? extends Annotation> dependency : handlerDependies) {
-			for (AnnotationHandler dependingAnnotationHandler : androidAnnotationsEnv.getHandlers()) {
-				if (dependingAnnotationHandler.getTarget().equals(dependency.getCanonicalName())) {
-					dependencies.addAll(dependingAnnotationHandler.getDependencies());
-					createDependenciesTree(dependingAnnotationHandler, dependencies);
-					continue dependendingHandlers;
-				}
-			}			
-		}
-	}
-	
-	@SuppressWarnings("unchecked")
 	private void runAnnotationDependencyInjection(AnnotationElementsHolder extractedModel) {
-		//ADI works now only to inject RootElement annotations
 		
 		timeStats.start("Run ADI");
 		
-		Map<AnnotationHandler, Set<Class<? extends Annotation>>> annotationHandlersDependencies = new HashMap<>();
-		
-		//Create the dependencies tree
+		final Map<String, Set<? extends Element>> annotatedElementsMap = new HashMap<>();		
+		final Map<String, AnnotationHandler> annotationHandlersFromTarget = new HashMap<>();
+				
+		//Right now only one AnnotationHandler for target is supported here
 		for (AnnotationHandler annotationHandler : androidAnnotationsEnv.getHandlers()) {
-			if (!annotationHandler.isEnabled()) {
-				continue;
-			}
-
-			//Use LinkedHashSet to preserve the order of the inserted elements
-			Set<Class<? extends Annotation>> dependenciesTree = new LinkedHashSet<>(annotationHandler.getDependencies());
-			createDependenciesTree(annotationHandler, dependenciesTree);
-			if (!dependenciesTree.isEmpty()) {
-				annotationHandlersDependencies.put(annotationHandler, dependenciesTree);
-			}
+			annotationHandlersFromTarget.put(annotationHandler.getTarget(), annotationHandler);
 		}
 		
-		Map<String, Set<? extends Element>> annotatedElementsMap = new HashMap<>();
-		for (AnnotationHandler annotationHandler : annotationHandlersDependencies.keySet()) {
+		for (AnnotationHandler annotationHandler : androidAnnotationsEnv.getHandlers()) {
 			
-			String annotationName = annotationHandler.getTarget();
-
+			final String annotationName = annotationHandler.getTarget();
+			
+			//Get the dependencies of the annotated elements for this annotation handler
 			Set<? extends Element> annotatedElements = extractedModel.getRootAnnotatedElements(annotationName);
 			for (Element annotatedElement : annotatedElements) {
-								
-				Set<Class<? extends Annotation>> dependencies = annotationHandlersDependencies.get(annotationHandler);
-				for (Class<? extends Annotation> dependency : dependencies) {
-
-					Element dependentElement = annotationHandler.dependentElement(annotatedElement, dependency);
-					if (dependentElement == null) continue;
-					
-					//TODO support other kind of dependencies
-					if (!dependentElement.getKind().equals(ElementKind.CLASS)) continue;
-
-					//If not annotated with a dependency, add a 'virtual' annotation to the element
-					if (dependentElement.getAnnotation(dependency) == null) {
-						
-						Set set = annotatedElementsMap.get(dependency.getCanonicalName());
-						if (set == null) {
-							set = new HashSet<>(extractedModel.getRootAnnotatedElements(dependency.getCanonicalName()));
-							annotatedElementsMap.put(dependency.getCanonicalName(), set);
-						}
-						set.add(dependentElement);
-						
-						String elementClassName = dependentElement.asType().toString();
-						Map<String, Set<Class<? extends Annotation>>> adi = androidAnnotationsEnv.getADIForTypeElementNames();
-						
-						Set<Class<? extends Annotation>> elementAdi = adi.get(elementClassName);
-						if (elementAdi == null) {
-							elementAdi = new HashSet<>();
-							adi.put(elementClassName, elementAdi);
-						}
-						
-						elementAdi.add(dependency);
-						
-					}
-				}
-				
+				Map<Class<? extends Annotation>, Element> dependencies = annotationHandler.getDependencies(annotatedElement);
+				checkADIDependencies(dependencies, annotationHandlersFromTarget, annotatedElementsMap, extractedModel);
 			}
 		}
 		
@@ -330,6 +272,37 @@ public class AndroidAnnotationProcessor extends AbstractProcessor {
 		}
 		
 		timeStats.stop("Run ADI");		
+	}
+	
+	@SuppressWarnings("unchecked")
+	private void checkADIDependencies(final Map<Class<? extends Annotation>, Element> dependencies, 
+			                          final Map<String, AnnotationHandler> annotationHandlersFromTarget,
+			                          final Map<String, Set<? extends Element>> annotatedElementsMap,
+			                          final AnnotationElementsHolder extractedModel) {
+		
+		for (Entry<Class<? extends Annotation>, Element> dependency : dependencies.entrySet()) {
+						
+			Class<? extends Annotation> dependencyAnnotation = dependency.getKey();
+			Element dependentElement = dependency.getValue();
+			
+			//Check if the element has the annotation, if not add it to ADI
+			if (dependentElement.getAnnotation(dependencyAnnotation) == null) {
+				
+				Set set = annotatedElementsMap.get(dependencyAnnotation.getCanonicalName());
+				if (set == null) {
+					set = new HashSet<>(extractedModel.getRootAnnotatedElements(dependencyAnnotation.getCanonicalName()));
+					annotatedElementsMap.put(dependencyAnnotation.getCanonicalName(), set);
+				}
+				set.add(dependentElement);
+				
+				androidAnnotationsEnv.addAnnotationToADI(dependentElement, dependencyAnnotation);						
+			}
+			
+			//Check for more dependencies if any, DFS search
+			AnnotationHandler annotationHandlerForDependency = annotationHandlersFromTarget.get(dependencyAnnotation.getCanonicalName());			
+			Map<Class<? extends Annotation>, Element> subDependencies = annotationHandlerForDependency.getDependencies(dependentElement);
+			checkADIDependencies(subDependencies, annotationHandlersFromTarget, annotatedElementsMap, extractedModel);
+		}
 	}
 
 	protected AnnotationElements validateAnnotations(AnnotationElements extractedModel, AnnotationElementsHolder validatingHolder) {
@@ -388,5 +361,4 @@ public class AndroidAnnotationProcessor extends AbstractProcessor {
 	public SourceVersion getSupportedSourceVersion() {
 		return SourceVersion.latest();
 	}
-
 }

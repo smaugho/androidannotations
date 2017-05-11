@@ -47,10 +47,13 @@ public class EIntentServiceHandler extends BaseAnnotationHandler<EIntentServiceH
 	public void validate(Element element, ElementValidation validation) {
 		
 		actionHelper.validate(element, this);
-		filesCacheHelper.addGeneratedClass(
-			TypeUtils.getGeneratedClassName(element, getEnvironment()), 
-			element
-		);
+		
+		if (!filesCacheHelper.isAncestor(element.asType().toString())) {
+			filesCacheHelper.addGeneratedClass(
+				TypeUtils.getGeneratedClassName(element, getEnvironment()), 
+				element
+			);
+		}
 		
 		validatorHelper.extendsIntentService(element, validation);
 

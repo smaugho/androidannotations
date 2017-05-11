@@ -83,5 +83,11 @@ public interface AndroidAnnotationsEnvironment {
 
 	List<AndroidAnnotationsPlugin> getPlugins();
 	
+	Set<Class<? extends Annotation>> getADIForClass(String clazz);
+	
 	Set<Class<? extends Annotation>> getADIOnElement(Element element);
+	
+	void addAnnotationToADI(Element element, Class<? extends Annotation> annotation);
+	
+	void addAnnotationToADI(String clazz, Class<? extends Annotation> annotation);
 }

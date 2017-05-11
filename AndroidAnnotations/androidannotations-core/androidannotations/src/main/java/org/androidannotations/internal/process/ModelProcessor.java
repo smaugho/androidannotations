@@ -101,11 +101,6 @@ public class ModelProcessor {
 			for (AnnotatedAndRootElements elements : ancestorAnnotatedElements) {
 				GeneratedClassHolder holder = processHolder.getGeneratedClassHolder(elements.rootTypeElement);
 				
-				//Remove Ancestors from Dependencies in File Caches
-				TypeElement rootElement = TypeUtils.getRootElement(elements.annotatedElement);
-				FilesCacheHelper.getInstance()
-				                .addAncestor(rootElement.asType().toString(), elements.rootTypeElement);
-				
 				/*
 				 * Annotations coming from ancestors may be applied to root
 				 * elements that are not validated, and therefore not available.

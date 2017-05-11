@@ -18,6 +18,8 @@ package org.androidannotations.logger;
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
 
+import com.dspot.declex.util.element.VirtualElement;
+
 public class Logger {
 
 	private final LoggerContext loggerContext;
@@ -109,7 +111,11 @@ public class Logger {
 			return;
 		}
 
-		loggerContext.writeLog(level, name, message, element, annotationMirror, thr, args);
+		if (element instanceof VirtualElement) {
+			loggerContext.writeLog(level, name, message, ((VirtualElement) element).getElement(), annotationMirror, thr, args);
+		} else {
+			loggerContext.writeLog(level, name, message, element, annotationMirror, thr, args);
+		}
 	}
 
 }

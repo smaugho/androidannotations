@@ -18,6 +18,7 @@ package org.androidannotations.internal;
 import java.lang.annotation.Annotation;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -230,12 +231,30 @@ public class InternalAndroidAnnotationsEnvironment implements AndroidAnnotations
 		if (!(element instanceof TypeElement)) return Collections.emptySet();
 		
 		String elementClassName = element.asType().toString();
-		if (!getADIForTypeElementNames().containsKey(elementClassName)) return Collections.emptySet();
+		if (!adiForTypeElementNames.containsKey(elementClassName)) return Collections.emptySet();
 		
-		return getADIForTypeElementNames().get(elementClassName);
+		return adiForTypeElementNames.get(elementClassName);
 	}
 	
-	Map<String, Set<Class<? extends Annotation>>> getADIForTypeElementNames() {
-		return adiForTypeElementNames;
+	@Override
+	public Set<Class<? extends Annotation>> getADIForClass(String clazz) {
+		if (!adiForTypeElementNames.containsKey(clazz)) return Collections.emptySet();
+		return adiForTypeElementNames.get(clazz);
+	}
+	
+	@Override
+	public void addAnnotationToADI(Element element, Class<? extends Annotation> annotation) {
+		this.addAnnotationToADI(element.asType().toString(), annotation);
+	}
+
+	@Override
+	public void addAnnotationToADI(String clazz, Class<? extends Annotation> annotation) {
+		Set<Class<? extends Annotation>> clazzAdi = adiForTypeElementNames.get(clazz);
+		if (clazzAdi == null) {
+			clazzAdi = new HashSet<>();
+			adiForTypeElementNames.put(clazz, clazzAdi);
+		}
+		
+		clazzAdi.add(annotation);
 	}
 }

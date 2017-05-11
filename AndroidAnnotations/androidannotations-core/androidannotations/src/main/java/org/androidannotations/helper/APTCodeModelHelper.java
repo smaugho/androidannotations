@@ -202,6 +202,10 @@ public class APTCodeModelHelper {
 	}
 	
 	public JMethod overrideAnnotatedMethod(ExecutableElement executableElement, GeneratedClassHolder holder, boolean checkForAction) {
+		return overrideAnnotatedMethod(executableElement, holder, checkForAction, true);
+	}
+	
+	public JMethod overrideAnnotatedMethod(ExecutableElement executableElement, GeneratedClassHolder holder, boolean checkForAction, boolean placeOverrideAndCallSuper) {
 		TypeMirror annotatedClass = holder.getAnnotatedElement().asType();
 		DeclaredType baseClass = (DeclaredType) executableElement.getEnclosingElement().asType();
 
@@ -257,7 +261,7 @@ public class APTCodeModelHelper {
 		}
 		copyNonAAAnnotations(method, annotations);
 
-		if (!checkForAction && !hasAnnotation(method, Override.class)) {
+		if (placeOverrideAndCallSuper && !checkForAction && !hasAnnotation(method, Override.class)) {
 			method.annotate(Override.class);
 		}
 
@@ -278,7 +282,9 @@ public class APTCodeModelHelper {
 			method._throws(thrownType);
 		}
 
-		callSuperMethod(method, holder, method.body());
+		if (placeOverrideAndCallSuper) {
+			callSuperMethod(method, holder, method.body());
+		}
 
 		return method;
 	}
@@ -314,7 +320,7 @@ public class APTCodeModelHelper {
 		}
 		return generatedClass;
 	}
-
+	
 	protected JMethod findAlreadyGeneratedMethod(ExecutableElement executableElement, GeneratedClassHolder holder, boolean checkForAction) {
 		
 		JDefinedClass definedClass = holder.getGeneratedClass();
