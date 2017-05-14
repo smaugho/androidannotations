@@ -59,6 +59,7 @@ public class ProcessHolder {
 		public final AbstractJClass SQL_EXCEPTION = refClass(SQLException.class);
 		public final AbstractJClass COLLECTIONS = refClass(Collections.class);
 		public final AbstractJClass THREAD = refClass(Thread.class);
+		public final AbstractJClass MAP = refClass(Map.class);
 		public final AbstractJClass HASH_MAP = refClass(HashMap.class);
 		public final AbstractJClass LIST = refClass(List.class);
 		public final AbstractJClass OBJECT = refClass(Object.class);

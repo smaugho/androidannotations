@@ -52,7 +52,7 @@ import com.helger.jcodemodel.JVar;
 public abstract class EComponentWithViewSupportHolder extends EComponentHolder implements HasKeyEventCallbackMethods {
 
 	protected ViewNotifierHelper viewNotifierHelper;
-	private JMethod onViewChanged;
+	private JMethod onViewChangedMethod;
 	private JBlock onViewChangedBody;
 	private JBlock onViewChangedBodyInjectionBlock;
 	private JBlock onViewChangedBodyViewHolderBlock;
@@ -60,10 +60,10 @@ public abstract class EComponentWithViewSupportHolder extends EComponentHolder i
 	private JBlock onViewChangedBodyBeforeInjectionBlock;
 	private JVar onViewChangedHasViewsParam;
 	protected Map<String, FoundHolder> foundHolders = new HashMap<>();
-	protected JMethod findNativeFragmentById;
-	protected JMethod findSupportFragmentById;
-	protected JMethod findNativeFragmentByTag;
-	protected JMethod findSupportFragmentByTag;
+	protected JMethod findNativeFragmentByIdMethod;
+	protected JMethod findSupportFragmentByIdMethod;
+	protected JMethod findNativeFragmentByTagMethod;
+	protected JMethod findSupportFragmentByTagMethod;
 	private Map<String, TextWatcherHolder> textWatcherHolders = new HashMap<>();
 	private Map<String, OnSeekBarChangeListenerHolder> onSeekBarChangeListenerHolders = new HashMap<>();
 	private Map<String, PageChangeHolder> pageChangeHolders = new HashMap<>();
@@ -73,6 +73,13 @@ public abstract class EComponentWithViewSupportHolder extends EComponentHolder i
 		super(environment, annotatedElement);
 		viewNotifierHelper = new ViewNotifierHelper(this);
 		keyEventCallbackMethodsDelegate = new KeyEventCallbackMethodsDelegate<>(this);
+	}
+	
+	public JMethod getOnViewChanged() {
+		if (onViewChangedMethod == null) {
+			setOnViewChanged();
+		}
+		return onViewChangedMethod;
 	}
 
 	public JBlock getOnViewChangedBody() {
@@ -127,20 +134,20 @@ public abstract class EComponentWithViewSupportHolder extends EComponentHolder i
 
 	protected void setOnViewChanged() {
 		getGeneratedClass()._implements(OnViewChangedListener.class);
-		onViewChanged = getGeneratedClass().method(PUBLIC, getCodeModel().VOID, "onViewChanged");
-		onViewChanged.annotate(Override.class);
-		onViewChangedBody = onViewChanged.body();
+		onViewChangedMethod = getGeneratedClass().method(PUBLIC, getCodeModel().VOID, "onViewChanged");
+		onViewChangedMethod.annotate(Override.class);
+		onViewChangedBody = onViewChangedMethod.body();
 		onViewChangedBodyBeforeInjectionBlock = onViewChangedBody.blockVirtual();
 		onViewChangedBodyViewHolderBlock = onViewChangedBody.blockVirtual();
 		onViewChangedBodyInjectionBlock = onViewChangedBody.blockVirtual();
 		onViewChangedBodyAfterInjectionBlock = onViewChangedBody.blockVirtual();
-		onViewChangedHasViewsParam = onViewChanged.param(HasViews.class, "hasViews");
+		onViewChangedHasViewsParam = onViewChangedMethod.param(HasViews.class, "hasViews");
 		AbstractJClass notifierClass = getJClass(OnViewChangedNotifier.class);
 		getInitBodyInjectionBlock().staticInvoke(notifierClass, "registerOnViewChangedListener").arg(_this());
 	}
 	
 	public boolean hasOnViewChanged() {
-		return onViewChanged != null;
+		return onViewChangedMethod != null;
 	}
 
 	public JInvocation findViewById(JFieldRef idRef) {
@@ -187,17 +194,17 @@ public abstract class EComponentWithViewSupportHolder extends EComponentHolder i
 	}
 
 	public JMethod getFindNativeFragmentById() {
-		if (findNativeFragmentById == null) {
+		if (findNativeFragmentByIdMethod == null) {
 			setFindNativeFragmentById();
 		}
-		return findNativeFragmentById;
+		return findNativeFragmentByIdMethod;
 	}
 
 	protected void setFindNativeFragmentById() {
-		findNativeFragmentById = getGeneratedClass().method(PRIVATE, getClasses().FRAGMENT, "findNativeFragmentById");
-		JVar idParam = findNativeFragmentById.param(getCodeModel().INT, "id");
+		findNativeFragmentByIdMethod = getGeneratedClass().method(PRIVATE, getClasses().FRAGMENT, "findNativeFragmentById");
+		JVar idParam = findNativeFragmentByIdMethod.param(getCodeModel().INT, "id");
 
-		JBlock body = findNativeFragmentById.body();
+		JBlock body = findNativeFragmentByIdMethod.body();
 
 		body._if(getContextRef()._instanceof(getClasses().ACTIVITY).not())._then()._return(_null());
 
@@ -207,17 +214,17 @@ public abstract class EComponentWithViewSupportHolder extends EComponentHolder i
 	}
 
 	public JMethod getFindSupportFragmentById() {
-		if (findSupportFragmentById == null) {
+		if (findSupportFragmentByIdMethod == null) {
 			setFindSupportFragmentById();
 		}
-		return findSupportFragmentById;
+		return findSupportFragmentByIdMethod;
 	}
 
 	protected void setFindSupportFragmentById() {
-		findSupportFragmentById = getGeneratedClass().method(PRIVATE, getClasses().SUPPORT_V4_FRAGMENT, "findSupportFragmentById");
-		JVar idParam = findSupportFragmentById.param(getCodeModel().INT, "id");
+		findSupportFragmentByIdMethod = getGeneratedClass().method(PRIVATE, getClasses().SUPPORT_V4_FRAGMENT, "findSupportFragmentById");
+		JVar idParam = findSupportFragmentByIdMethod.param(getCodeModel().INT, "id");
 
-		JBlock body = findSupportFragmentById.body();
+		JBlock body = findSupportFragmentByIdMethod.body();
 
 		body._if(getContextRef()._instanceof(getClasses().FRAGMENT_ACTIVITY).not())._then()._return(_null());
 
@@ -227,17 +234,17 @@ public abstract class EComponentWithViewSupportHolder extends EComponentHolder i
 	}
 
 	public JMethod getFindNativeFragmentByTag() {
-		if (findNativeFragmentByTag == null) {
+		if (findNativeFragmentByTagMethod == null) {
 			setFindNativeFragmentByTag();
 		}
-		return findNativeFragmentByTag;
+		return findNativeFragmentByTagMethod;
 	}
 
 	protected void setFindNativeFragmentByTag() {
-		findNativeFragmentByTag = getGeneratedClass().method(PRIVATE, getClasses().FRAGMENT, "findNativeFragmentByTag");
-		JVar tagParam = findNativeFragmentByTag.param(getClasses().STRING, "tag");
+		findNativeFragmentByTagMethod = getGeneratedClass().method(PRIVATE, getClasses().FRAGMENT, "findNativeFragmentByTag");
+		JVar tagParam = findNativeFragmentByTagMethod.param(getClasses().STRING, "tag");
 
-		JBlock body = findNativeFragmentByTag.body();
+		JBlock body = findNativeFragmentByTagMethod.body();
 
 		body._if(getContextRef()._instanceof(getClasses().ACTIVITY).not())._then()._return(_null());
 
@@ -247,17 +254,17 @@ public abstract class EComponentWithViewSupportHolder extends EComponentHolder i
 	}
 
 	public JMethod getFindSupportFragmentByTag() {
-		if (findSupportFragmentByTag == null) {
+		if (findSupportFragmentByTagMethod == null) {
 			setFindSupportFragmentByTag();
 		}
-		return findSupportFragmentByTag;
+		return findSupportFragmentByTagMethod;
 	}
 
 	protected void setFindSupportFragmentByTag() {
-		findSupportFragmentByTag = getGeneratedClass().method(PRIVATE, getClasses().SUPPORT_V4_FRAGMENT, "findSupportFragmentByTag");
-		JVar tagParam = findSupportFragmentByTag.param(getClasses().STRING, "tag");
+		findSupportFragmentByTagMethod = getGeneratedClass().method(PRIVATE, getClasses().SUPPORT_V4_FRAGMENT, "findSupportFragmentByTag");
+		JVar tagParam = findSupportFragmentByTagMethod.param(getClasses().STRING, "tag");
 
-		JBlock body = findSupportFragmentByTag.body();
+		JBlock body = findSupportFragmentByTagMethod.body();
 
 		body._if(getContextRef()._instanceof(getClasses().FRAGMENT_ACTIVITY).not())._then()._return(_null());
 

@@ -39,6 +39,12 @@ public class EServiceHolder extends EComponentHolder implements HasIntentBuilder
 	private ServiceIntentBuilder intentBuilder;
 	private JDefinedClass intentBuilderClass;
 	private ReceiverRegistrationDelegate<EServiceHolder> receiverRegistrationDelegate;
+	
+	private JMethod onCreateMethod;
+	private JBlock onCreateBody;
+	
+	private JMethod onDestroyMethod;
+	private JBlock onDestroyBody;
 	private JBlock onDestroyBeforeSuperBlock;
 
 	public EServiceHolder(AndroidAnnotationsEnvironment environment, TypeElement annotatedElement, AndroidManifest androidManifest) throws Exception {
@@ -60,24 +66,46 @@ public class EServiceHolder extends EComponentHolder implements HasIntentBuilder
 
 	@Override
 	protected void setInit() {
-		init = generatedClass.method(PRIVATE, getCodeModel().VOID, "init" + generationSuffix());
+		initMethod = generatedClass.method(PRIVATE, getCodeModel().VOID, "init" + generationSuffix());
 		setOnCreate();
 	}
 
+	public JMethod getOnCreate() {
+		return onCreateMethod;
+	}
+	
+	public JBlock getOnCreateBody() {
+		return onCreateBody;
+	}
+	
 	private void setOnCreate() {
-		JMethod onCreate = generatedClass.method(PUBLIC, getCodeModel().VOID, "onCreate");
-		onCreate.annotate(Override.class);
-		JBlock onCreateBody = onCreate.body();
+		onCreateMethod = generatedClass.method(PUBLIC, getCodeModel().VOID, "onCreate");
+		onCreateMethod.annotate(Override.class);
+		onCreateBody = onCreateMethod.body();
 		onCreateBody.invoke(getInit());
-		onCreateBody.invoke(JExpr._super(), onCreate);
+		onCreateBody.invoke(JExpr._super(), onCreateMethod);
 	}
 
+	public JMethod getOnDestroy() {
+		if (onDestroyMethod == null) {
+			setOnDestroy();
+		}
+		return onDestroyMethod;
+	}
+	
+	public JBlock getOnDestroyBody() {
+		if (onDestroyBody == null) {
+			setOnDestroy();
+		}
+		return onDestroyBody;
+	}
+	
 	private void setOnDestroy() {
-		JMethod onDestroy = generatedClass.method(PUBLIC, getCodeModel().VOID, "onDestroy");
-		onDestroy.annotate(Override.class);
-		JBlock onDestroyBody = onDestroy.body();
+		onDestroyMethod = generatedClass.method(PUBLIC, getCodeModel().VOID, "onDestroy");
+		onDestroyMethod.annotate(Override.class);
+		onDestroyBody = onDestroyMethod.body();
 		onDestroyBeforeSuperBlock = onDestroyBody.blockSimple();
-		onDestroyBody.invoke(JExpr._super(), onDestroy);
+		onDestroyBody.invoke(JExpr._super(), onDestroyMethod);
 	}
 
 	@Override

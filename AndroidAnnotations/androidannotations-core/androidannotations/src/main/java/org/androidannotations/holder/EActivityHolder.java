@@ -58,9 +58,9 @@ public class EActivityHolder extends EComponentWithViewSupportHolder implements 
 		HasPreferenceHeaders {
 
 	private ActivityIntentBuilder intentBuilder;
-	private JMethod onCreate;
-	private JMethod setIntent;
-	private JMethod setContentViewLayout;
+	private JMethod onCreateMethod;
+	private JMethod setIntentMethod;
+	private JMethod setContentViewLayoutMethod;
 	private JVar initSavedInstanceParam;
 	private JDefinedClass intentBuilderClass;
 	private InstanceStateDelegate instanceStateDelegate;
@@ -70,25 +70,31 @@ public class EActivityHolder extends EComponentWithViewSupportHolder implements 
 	private JMethod injectExtrasMethod;
 	private JBlock injectExtrasBlock;
 	private JVar injectExtras;
+	private JMethod onCreateOptionsMenuMethod;
 	private JBlock onCreateOptionsMenuMethodBody;
 	private JBlock onCreateOptionsMenuMethodInflateBody;
 	private JVar onCreateOptionsMenuMenuInflaterVar;
 	private JVar onCreateOptionsMenuMenuParam;
+	private JMethod onOptionsItemSelectedMethod;
 	private JVar onOptionsItemSelectedItem;
 	private JVar onOptionsItemSelectedItemId;
 	private JBlock onOptionsItemSelectedMiddleBlock;
 	private NonConfigurationHolder nonConfigurationHolder;
 	private JBlock initIfNonConfigurationNotNullBlock;
 	private JVar initNonConfigurationInstance;
-	private JMethod getLastNonConfigurationInstance;
+	private JMethod getLastNonConfigurationInstanceMethod;
 	private JBlock onRetainNonConfigurationInstanceBindBlock;
 	private JVar onRetainNonConfigurationInstance;
+	private JMethod onStartMethod;
 	private JBlock onStartBeforeSuperBlock;
 	private JBlock onStartAfterSuperBlock;
+	private JMethod onRestartMethod;
 	private JBlock onRestartBeforeSuperBlock;
 	private JBlock onRestartAfterSuperBlock;
+	private JMethod onResumeMethod;
 	private JBlock onResumeBeforeSuperBlock;
 	private JBlock onResumeAfterSuperBlock;
+	private JMethod onPauseMethod;
 	private JBlock onPauseBeforeSuperBlock;
 	private JBlock onPauseAfterSuperBlock;
 	private JMethod onStopMethod;
@@ -98,10 +104,11 @@ public class EActivityHolder extends EComponentWithViewSupportHolder implements 
 	private JBlock onDestroyAfterSuperBlock;
 	private JMethod onNewIntentMethod;
 	private JBlock onNewIntentAfterSuperBlock;
+	private JMethod onConfigurationChangedMethod;
 	private JBlock onConfigurationChangedBeforeSuperBlock;
 	private JBlock onConfigurationChangedAfterSuperBlock;
 	private JVar onConfigurationChangedNewConfigParam;
-	private JMethod onContentChanged;
+	private JMethod onContentChangedMethod;
 	private JBlock onContentChangedAfterSuperBlock;
 
 	public EActivityHolder(AndroidAnnotationsEnvironment environment, TypeElement annotatedElement, AndroidManifest androidManifest) throws Exception {
@@ -122,49 +129,56 @@ public class EActivityHolder extends EComponentWithViewSupportHolder implements 
 
 	@Override
 	protected void setInit() {
-		init = generatedClass.method(PRIVATE, getCodeModel().VOID, "init" + generationSuffix());
+		initMethod = generatedClass.method(PRIVATE, getCodeModel().VOID, "init" + generationSuffix());
 		AbstractJClass bundleClass = getClasses().BUNDLE;
-		initSavedInstanceParam = init.param(bundleClass, "savedInstanceState");
+		initSavedInstanceParam = initMethod.param(bundleClass, "savedInstanceState");
 		getOnCreate();
 	}
 
 	public JMethod getOnCreate() {
-		if (onCreate == null) {
+		if (onCreateMethod == null) {
 			setOnCreate();
 		}
-		return onCreate;
+		return onCreateMethod;
 	}
 
 	public JMethod getSetIntent() {
-		if (setIntent == null) {
+		if (setIntentMethod == null) {
 			setSetIntent();
 		}
-		return setIntent;
+		return setIntentMethod;
 	}
 
 	private void setOnCreate() {
-		onCreate = generatedClass.method(PUBLIC, getCodeModel().VOID, "onCreate");
-		onCreate.annotate(Override.class);
+		onCreateMethod = generatedClass.method(PUBLIC, getCodeModel().VOID, "onCreate");
+		onCreateMethod.annotate(Override.class);
 		AbstractJClass bundleClass = getClasses().BUNDLE;
-		JVar onCreateSavedInstanceState = onCreate.param(bundleClass, "savedInstanceState");
-		JBlock onCreateBody = onCreate.body();
+		JVar onCreateSavedInstanceState = onCreateMethod.param(bundleClass, "savedInstanceState");
+		JBlock onCreateBody = onCreateMethod.body();
 		JVar previousNotifier = viewNotifierHelper.replacePreviousNotifier(onCreateBody);
 		onCreateBody.invoke(getInit()).arg(onCreateSavedInstanceState);
-		onCreateBody.invoke(_super(), onCreate).arg(onCreateSavedInstanceState);
+		onCreateBody.invoke(_super(), onCreateMethod).arg(onCreateSavedInstanceState);
 		viewNotifierHelper.resetPreviousNotifier(onCreateBody, previousNotifier);
 	}
 
 	// CHECKSTYLE:OFF
 
 	private void setOnStart() {
-		JMethod method = generatedClass.method(JMod.PUBLIC, getCodeModel().VOID, "onStart");
-		method.annotate(Override.class);
-		JBlock body = method.body();
+		onStartMethod = generatedClass.method(JMod.PUBLIC, getCodeModel().VOID, "onStart");
+		onStartMethod.annotate(Override.class);
+		JBlock body = onStartMethod.body();
 		onStartBeforeSuperBlock = body.blockSimple();
-		body.invoke(_super(), method);
+		body.invoke(_super(), onStartMethod);
 		onStartAfterSuperBlock = body.blockSimple();
 	}
 
+	public JMethod getOnRestart() {
+		if (onRestartMethod == null) {
+			setOnRestart();
+		}
+		return onRestartMethod;
+	}
+	
 	public JBlock getOnRestartAfterSuperBlock() {
 		if (onRestartAfterSuperBlock == null) {
 			setOnRestart();
@@ -173,29 +187,29 @@ public class EActivityHolder extends EComponentWithViewSupportHolder implements 
 	}
 
 	private void setOnRestart() {
-		JMethod method = generatedClass.method(JMod.PUBLIC, getCodeModel().VOID, "onRestart");
-		method.annotate(Override.class);
-		JBlock body = method.body();
+		onRestartMethod = generatedClass.method(JMod.PUBLIC, getCodeModel().VOID, "onRestart");
+		onRestartMethod.annotate(Override.class);
+		JBlock body = onRestartMethod.body();
 		onRestartBeforeSuperBlock = body.blockSimple();
-		body.invoke(_super(), method);
+		body.invoke(_super(), onRestartMethod);
 		onRestartAfterSuperBlock = body.blockSimple();
 	}
 
 	private void setOnResume() {
-		JMethod method = generatedClass.method(JMod.PUBLIC, getCodeModel().VOID, "onResume");
-		method.annotate(Override.class);
-		JBlock body = method.body();
+		onResumeMethod = generatedClass.method(JMod.PUBLIC, getCodeModel().VOID, "onResume");
+		onResumeMethod.annotate(Override.class);
+		JBlock body = onResumeMethod.body();
 		onResumeBeforeSuperBlock = body.blockSimple();
-		body.invoke(_super(), method);
+		body.invoke(_super(), onResumeMethod);
 		onResumeAfterSuperBlock = body.blockSimple();
 	}
 
 	private void setOnPause() {
-		JMethod method = generatedClass.method(JMod.PUBLIC, getCodeModel().VOID, "onPause");
-		method.annotate(Override.class);
-		JBlock body = method.body();
+		onPauseMethod = generatedClass.method(JMod.PUBLIC, getCodeModel().VOID, "onPause");
+		onPauseMethod.annotate(Override.class);
+		JBlock body = onPauseMethod.body();
 		onPauseBeforeSuperBlock = body.blockSimple();
-		body.invoke(_super(), method);
+		body.invoke(_super(), onPauseMethod);
 		onPauseAfterSuperBlock = body.blockSimple();
 	}
 
@@ -209,18 +223,11 @@ public class EActivityHolder extends EComponentWithViewSupportHolder implements 
 	}
 
 	private void setSetIntent() {
-		setIntent = generatedClass.method(PUBLIC, getCodeModel().VOID, "setIntent");
-		setIntent.annotate(Override.class);
-		JVar methodParam = setIntent.param(getClasses().INTENT, "newIntent");
-		JBlock setIntentBody = setIntent.body();
-		setIntentBody.invoke(_super(), setIntent).arg(methodParam);
-	}
-
-	public JMethod getOnStop() {
-		if (onStopMethod == null) {
-			setOnStop();
-		}
-		return onStopMethod;
+		setIntentMethod = generatedClass.method(PUBLIC, getCodeModel().VOID, "setIntent");
+		setIntentMethod.annotate(Override.class);
+		JVar methodParam = setIntentMethod.param(getClasses().INTENT, "newIntent");
+		JBlock setIntentBody = setIntentMethod.body();
+		setIntentBody.invoke(_super(), setIntentMethod).arg(methodParam);
 	}
 
 	private void setOnStop() {
@@ -247,6 +254,13 @@ public class EActivityHolder extends EComponentWithViewSupportHolder implements 
 		onDestroyAfterSuperBlock = body.blockSimple();
 	}
 
+	public JMethod getOnConfigurationChanged() {
+		if (onConfigurationChangedMethod == null) {
+			setOnConfigurationChanged();
+		}
+		return onConfigurationChangedMethod;
+	}
+	
 	public JBlock getOnConfigurationChangedBeforeSuperBlock() {
 		if (onConfigurationChangedBeforeSuperBlock == null) {
 			setOnConfigurationChanged();
@@ -269,21 +283,21 @@ public class EActivityHolder extends EComponentWithViewSupportHolder implements 
 	}
 
 	private void setOnConfigurationChanged() {
-		JMethod method = generatedClass.method(JMod.PUBLIC, getCodeModel().VOID, "onConfigurationChanged");
-		method.annotate(Override.class);
+		onConfigurationChangedMethod = generatedClass.method(JMod.PUBLIC, getCodeModel().VOID, "onConfigurationChanged");
+		onConfigurationChangedMethod.annotate(Override.class);
 		AbstractJClass configurationClass = getClasses().CONFIGURATION;
-		onConfigurationChangedNewConfigParam = method.param(configurationClass, "newConfig");
-		JBlock body = method.body();
+		onConfigurationChangedNewConfigParam = onConfigurationChangedMethod.param(configurationClass, "newConfig");
+		JBlock body = onConfigurationChangedMethod.body();
 		onConfigurationChangedBeforeSuperBlock = body.blockSimple();
-		body.invoke(_super(), method).arg(onConfigurationChangedNewConfigParam);
+		body.invoke(_super(), onConfigurationChangedMethod).arg(onConfigurationChangedNewConfigParam);
 		onConfigurationChangedAfterSuperBlock = body.blockSimple();
 	}
 
 	public JMethod getOnContentChanged() {
-		if (onContentChanged == null) {
+		if (onContentChangedMethod == null) {
 			setOnContentChanged();
 		}
-		return onContentChanged;
+		return onContentChangedMethod;
 	}
 
 	public JBlock getOnContentChangedAfterSuperBlock() {
@@ -294,76 +308,72 @@ public class EActivityHolder extends EComponentWithViewSupportHolder implements 
 	}
 
 	private void setOnContentChanged() {
-		onContentChanged = generatedClass.method(JMod.PUBLIC, getCodeModel().VOID, "onContentChanged");
-		onContentChanged.annotate(Override.class);
-		JBlock body = onContentChanged.body();
-		body.invoke(_super(), onContentChanged);
+		onContentChangedMethod = generatedClass.method(JMod.PUBLIC, getCodeModel().VOID, "onContentChanged");
+		onContentChangedMethod.annotate(Override.class);
+		JBlock body = onContentChangedMethod.body();
+		body.invoke(_super(), onContentChangedMethod);
 		onContentChangedAfterSuperBlock = body.blockSimple();
 	}
 
 	private void setOnCreateOptionsMenu() {
-		JMethod method = generatedClass.method(PUBLIC, getCodeModel().BOOLEAN, "onCreateOptionsMenu");
-		method.annotate(Override.class);
-		JBlock methodBody = method.body();
-		onCreateOptionsMenuMenuParam = method.param(getClasses().MENU, "menu");
+		onCreateOptionsMenuMethod = generatedClass.method(PUBLIC, getCodeModel().BOOLEAN, "onCreateOptionsMenu");
+		onCreateOptionsMenuMethod.annotate(Override.class);
+		JBlock methodBody = onCreateOptionsMenuMethod.body();
+		onCreateOptionsMenuMenuParam = onCreateOptionsMenuMethod.param(getClasses().MENU, "menu");
 		onCreateOptionsMenuMenuInflaterVar = methodBody.decl(getClasses().MENU_INFLATER, "menuInflater", invoke("getMenuInflater"));
 		onCreateOptionsMenuMethodInflateBody = methodBody.blockSimple();
 		onCreateOptionsMenuMethodBody = methodBody.blockSimple();
-		methodBody._return(_super().invoke(method).arg(onCreateOptionsMenuMenuParam));
+		methodBody._return(_super().invoke(onCreateOptionsMenuMethod).arg(onCreateOptionsMenuMenuParam));
 	}
 
 	private void setOnOptionsItemSelected() {
-		JMethod method = generatedClass.method(JMod.PUBLIC, getCodeModel().BOOLEAN, "onOptionsItemSelected");
-		method.annotate(Override.class);
-		JBlock methodBody = method.body();
-		onOptionsItemSelectedItem = method.param(getClasses().MENU_ITEM, "item");
+		onOptionsItemSelectedMethod = generatedClass.method(JMod.PUBLIC, getCodeModel().BOOLEAN, "onOptionsItemSelected");
+		onOptionsItemSelectedMethod.annotate(Override.class);
+		JBlock methodBody = onOptionsItemSelectedMethod.body();
+		onOptionsItemSelectedItem = onOptionsItemSelectedMethod.param(getClasses().MENU_ITEM, "item");
 		onOptionsItemSelectedItemId = methodBody.decl(getCodeModel().INT, "itemId_", onOptionsItemSelectedItem.invoke("getItemId"));
 		onOptionsItemSelectedMiddleBlock = methodBody.blockSimple();
 
-		methodBody._return(invoke(_super(), method).arg(onOptionsItemSelectedItem));
+		methodBody._return(invoke(_super(), onOptionsItemSelectedMethod).arg(onOptionsItemSelectedItem));
 	}
 
 	@Override
 	protected void setFindNativeFragmentById() {
-		JMethod method = generatedClass.method(PRIVATE, getClasses().FRAGMENT, "findNativeFragmentById");
-		JVar idParam = method.param(getCodeModel().INT, "id");
-		JBlock body = method.body();
+		findNativeFragmentByIdMethod = generatedClass.method(PRIVATE, getClasses().FRAGMENT, "findNativeFragmentById");
+		JVar idParam = findNativeFragmentByIdMethod.param(getCodeModel().INT, "id");
+		JBlock body = findNativeFragmentByIdMethod.body();
 		body._return(invoke("getFragmentManager").invoke("findFragmentById").arg(idParam));
-		findNativeFragmentById = method;
 	}
 
 	@Override
 	protected void setFindSupportFragmentById() {
-		JMethod method = generatedClass.method(PRIVATE, getClasses().SUPPORT_V4_FRAGMENT, "findSupportFragmentById");
-		JVar idParam = method.param(getCodeModel().INT, "id");
-		JBlock body = method.body();
+		findSupportFragmentByIdMethod = generatedClass.method(PRIVATE, getClasses().SUPPORT_V4_FRAGMENT, "findSupportFragmentById");
+		JVar idParam = findSupportFragmentByIdMethod.param(getCodeModel().INT, "id");
+		JBlock body = findSupportFragmentByIdMethod.body();
 		body._return(invoke("getSupportFragmentManager").invoke("findFragmentById").arg(idParam));
-		findSupportFragmentById = method;
 	}
 
 	@Override
 	protected void setFindNativeFragmentByTag() {
-		JMethod method = generatedClass.method(PRIVATE, getClasses().FRAGMENT, "findNativeFragmentByTag");
-		JVar tagParam = method.param(getClasses().STRING, "tag");
-		JBlock body = method.body();
+		findNativeFragmentByTagMethod = generatedClass.method(PRIVATE, getClasses().FRAGMENT, "findNativeFragmentByTag");
+		JVar tagParam = findNativeFragmentByTagMethod.param(getClasses().STRING, "tag");
+		JBlock body = findNativeFragmentByTagMethod.body();
 		body._return(invoke("getFragmentManager").invoke("findFragmentByTag").arg(tagParam));
-		findNativeFragmentByTag = method;
 	}
 
 	@Override
 	protected void setFindSupportFragmentByTag() {
-		JMethod method = generatedClass.method(PRIVATE, getClasses().SUPPORT_V4_FRAGMENT, "findSupportFragmentByTag");
-		JVar tagParam = method.param(getClasses().STRING, "tag");
-		JBlock body = method.body();
+		findSupportFragmentByTagMethod = generatedClass.method(PRIVATE, getClasses().SUPPORT_V4_FRAGMENT, "findSupportFragmentByTag");
+		JVar tagParam = findSupportFragmentByTagMethod.param(getClasses().STRING, "tag");
+		JBlock body = findSupportFragmentByTagMethod.body();
 		body._return(invoke("getSupportFragmentManager").invoke("findFragmentByTag").arg(tagParam));
-		findSupportFragmentByTag = method;
 	}
 
 	public JMethod getSetContentViewLayout() {
-		if (setContentViewLayout == null) {
+		if (setContentViewLayoutMethod == null) {
 			setSetContentView();
 		}
-		return setContentViewLayout;
+		return setContentViewLayoutMethod;
 	}
 
 	private void setSetContentView() {
@@ -371,7 +381,7 @@ public class EActivityHolder extends EComponentWithViewSupportHolder implements 
 
 		AbstractJClass layoutParamsClass = getClasses().VIEW_GROUP_LAYOUT_PARAMS;
 
-		setContentViewLayout = setContentViewMethod(new AbstractJType[] { getCodeModel().INT }, new String[] { "layoutResID" });
+		setContentViewLayoutMethod = setContentViewMethod(new AbstractJType[] { getCodeModel().INT }, new String[] { "layoutResID" });
 		setContentViewMethod(new AbstractJType[] { getClasses().VIEW, layoutParamsClass }, new String[] { "view", "params" });
 		setContentViewMethod(new AbstractJType[] { getClasses().VIEW }, new String[] { "view" });
 	}
@@ -449,6 +459,13 @@ public class EActivityHolder extends EComponentWithViewSupportHolder implements 
 		getInitBodyInjectionBlock().invoke(injectExtrasMethod);
 	}
 
+	public JMethod getOnNewIntent() {
+		if (onNewIntentMethod == null) {
+			setOnNewIntent();
+		}
+		return onNewIntentMethod;
+	}
+	
 	public JBlock getOnNewIntentAfterSuperBlock() {
 		if (onNewIntentAfterSuperBlock == null) {
 			setOnNewIntent();
@@ -481,6 +498,13 @@ public class EActivityHolder extends EComponentWithViewSupportHolder implements 
 		return instanceStateDelegate.getRestoreStateBundleParam();
 	}
 
+	public JMethod getOnCreateOptionsMenu() {
+		if (onCreateOptionsMenuMethod == null) {
+			setOnCreateOptionsMenu();
+		}
+		return onCreateOptionsMenuMethod;
+	}
+	
 	@Override
 	public JBlock getOnCreateOptionsMenuMethodBody() {
 		if (onCreateOptionsMenuMethodBody == null) {
@@ -511,6 +535,13 @@ public class EActivityHolder extends EComponentWithViewSupportHolder implements 
 			setOnCreateOptionsMenu();
 		}
 		return onCreateOptionsMenuMenuParam;
+	}
+	
+	public JMethod getOnOptionsItemSelected() {
+		if (onOptionsItemSelectedMethod == null) {
+			setOnOptionsItemSelected();
+		}
+		return onOptionsItemSelectedMethod;
 	}
 
 	@Override
@@ -570,10 +601,10 @@ public class EActivityHolder extends EComponentWithViewSupportHolder implements 
 	}
 
 	public JMethod getGetLastNonConfigurationInstance() throws JClassAlreadyExistsException {
-		if (getLastNonConfigurationInstance == null) {
+		if (getLastNonConfigurationInstanceMethod == null) {
 			setGetLastNonConfigurationInstance();
 		}
-		return getLastNonConfigurationInstance;
+		return getLastNonConfigurationInstanceMethod;
 	}
 
 	private void setGetLastNonConfigurationInstance() throws JClassAlreadyExistsException {
@@ -589,10 +620,10 @@ public class EActivityHolder extends EComponentWithViewSupportHolder implements 
 		JDefinedClass ncHolderClass = ncHolder.getGeneratedClass();
 		JFieldVar superNonConfigurationInstanceField = ncHolder.getSuperNonConfigurationInstanceField();
 
-		getLastNonConfigurationInstance = generatedClass.method(PUBLIC, Object.class, getLastNonConfigurationInstanceName);
-		getLastNonConfigurationInstance.annotate(Override.class);
-		JBlock body = getLastNonConfigurationInstance.body();
-		JVar nonConfigurationInstance = body.decl(ncHolderClass, "nonConfigurationInstance", cast(ncHolderClass, _super().invoke(getLastNonConfigurationInstance)));
+		getLastNonConfigurationInstanceMethod = generatedClass.method(PUBLIC, Object.class, getLastNonConfigurationInstanceName);
+		getLastNonConfigurationInstanceMethod.annotate(Override.class);
+		JBlock body = getLastNonConfigurationInstanceMethod.body();
+		JVar nonConfigurationInstance = body.decl(ncHolderClass, "nonConfigurationInstance", cast(ncHolderClass, _super().invoke(getLastNonConfigurationInstanceMethod)));
 		body._if(nonConfigurationInstance.eq(_null()))._then()._return(_null());
 		body._return(nonConfigurationInstance.ref(superNonConfigurationInstanceField));
 	}
@@ -669,6 +700,13 @@ public class EActivityHolder extends EComponentWithViewSupportHolder implements 
 		return onDestroyAfterSuperBlock;
 	}
 
+	public JMethod getOnResume() {
+		if (onResumeMethod == null) {
+			setOnResume();
+		}
+		return onResumeMethod;
+	}
+	
 	@Override
 	public JBlock getOnResumeAfterSuperBlock() {
 		if (onResumeAfterSuperBlock == null) {
@@ -690,6 +728,13 @@ public class EActivityHolder extends EComponentWithViewSupportHolder implements 
 		return onDestroyBeforeSuperBlock;
 	}
 
+	public JMethod getOnStart() {
+		if (onStartMethod == null) {
+			setOnStart();
+		}
+		return onStartMethod;
+	}
+	
 	@Override
 	public JBlock getOnStartAfterSuperBlock() {
 		if (onStartAfterSuperBlock == null) {
@@ -698,6 +743,13 @@ public class EActivityHolder extends EComponentWithViewSupportHolder implements 
 		return onStartAfterSuperBlock;
 	}
 
+	public JMethod getOnStop() {
+		if (onStopMethod == null) {
+			setOnStop();
+		}
+		return onStopMethod;
+	}
+	
 	@Override
 	public JBlock getOnStopBeforeSuperBlock() {
 		if (onStopBeforeSuperBlock == null) {
@@ -706,6 +758,13 @@ public class EActivityHolder extends EComponentWithViewSupportHolder implements 
 		return onStopBeforeSuperBlock;
 	}
 
+	public JMethod getOnPause() {
+		if (onPauseMethod == null) {
+			setOnPause();
+		}
+		return onPauseMethod;
+	}
+	
 	@Override
 	public JBlock getOnPauseBeforeSuperBlock() {
 		if (onPauseBeforeSuperBlock == null) {

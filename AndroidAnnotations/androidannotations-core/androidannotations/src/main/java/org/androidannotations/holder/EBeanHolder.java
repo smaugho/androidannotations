@@ -74,7 +74,7 @@ public class EBeanHolder extends EComponentWithViewSupportHolder {
 
 	@Override
 	protected void setInit() {
-		init = generatedClass.method(PRIVATE, getCodeModel().VOID, "init" + generationSuffix());
+		initMethod = generatedClass.method(PRIVATE, getCodeModel().VOID, "init" + generationSuffix());
 	}
 
 	public void invokeInitInConstructor() {
