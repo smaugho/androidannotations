@@ -38,7 +38,7 @@ public interface AnnotationHandler<T extends GeneratedClassHolder> {
 	
 	String getBeforeTarget();
 	
-	Map<Class<? extends Annotation>, Element> getDependencies(Element element);
+	Map<Element, Class<? extends Annotation>> getDependencies(Element element);
 	
 	boolean isEnabled();
 }

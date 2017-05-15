@@ -24,6 +24,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -247,22 +248,22 @@ public class AndroidAnnotationProcessor extends AbstractProcessor {
 		timeStats.start("Run ADI");
 		
 		final Map<String, Set<? extends Element>> annotatedElementsMap = new HashMap<>();		
-		final Map<String, AnnotationHandler> annotationHandlersFromTarget = new HashMap<>();
+		final Map<String, AnnotationHandler<?>> annotationHandlersFromTarget = new HashMap<>();
 				
 		//Right now only one AnnotationHandler for target is supported here
-		for (AnnotationHandler annotationHandler : androidAnnotationsEnv.getHandlers()) {
+		for (AnnotationHandler<?> annotationHandler : androidAnnotationsEnv.getHandlers()) {
 			annotationHandlersFromTarget.put(annotationHandler.getTarget(), annotationHandler);
 		}
 		
-		for (AnnotationHandler annotationHandler : androidAnnotationsEnv.getHandlers()) {
+		for (AnnotationHandler<?> annotationHandler : androidAnnotationsEnv.getHandlers()) {
 			
 			final String annotationName = annotationHandler.getTarget();
 			
 			//Get the dependencies of the annotated elements for this annotation handler
 			Set<? extends Element> annotatedElements = extractedModel.getRootAnnotatedElements(annotationName);
 			for (Element annotatedElement : annotatedElements) {
-				Map<Class<? extends Annotation>, Element> dependencies = annotationHandler.getDependencies(annotatedElement);
-				checkADIDependencies(dependencies, annotationHandlersFromTarget, annotatedElementsMap, extractedModel);
+				Map<Element, Class<? extends Annotation>> dependencies = annotationHandler.getDependencies(annotatedElement);
+				checkADIDependencies(dependencies, annotationHandlersFromTarget, annotatedElementsMap, null, extractedModel);
 			}
 		}
 		
@@ -275,15 +276,24 @@ public class AndroidAnnotationProcessor extends AbstractProcessor {
 	}
 	
 	@SuppressWarnings("unchecked")
-	private void checkADIDependencies(final Map<Class<? extends Annotation>, Element> dependencies, 
-			                          final Map<String, AnnotationHandler> annotationHandlersFromTarget,
+	private void checkADIDependencies(final Map<Element, Class<? extends Annotation>> dependencies, 
+			                          final Map<String, AnnotationHandler<?>> annotationHandlersFromTarget,
 			                          final Map<String, Set<? extends Element>> annotatedElementsMap,
+			                          List<Entry<Element, Class<? extends Annotation>>> analizedDependencies,
 			                          final AnnotationElementsHolder extractedModel) {
+				
+		if (analizedDependencies == null) {
+			analizedDependencies = new LinkedList<>();
+		}
 		
-		for (Entry<Class<? extends Annotation>, Element> dependency : dependencies.entrySet()) {
-						
-			Class<? extends Annotation> dependencyAnnotation = dependency.getKey();
-			Element dependentElement = dependency.getValue();
+		for (Entry<Element, Class<? extends Annotation>> dependency : dependencies.entrySet()) {
+
+			//Avoid circular dependencies
+			if (analizedDependencies.contains(dependency)) continue;
+			analizedDependencies.add(dependency);
+			
+			final Element dependentElement = dependency.getKey();
+			final Class<? extends Annotation> dependencyAnnotation = dependency.getValue();			
 			
 			//Check if the element has the annotation, if not add it to ADI
 			if (dependentElement.getAnnotation(dependencyAnnotation) == null) {
@@ -299,9 +309,9 @@ public class AndroidAnnotationProcessor extends AbstractProcessor {
 			}
 			
 			//Check for more dependencies if any, DFS search
-			AnnotationHandler annotationHandlerForDependency = annotationHandlersFromTarget.get(dependencyAnnotation.getCanonicalName());			
-			Map<Class<? extends Annotation>, Element> subDependencies = annotationHandlerForDependency.getDependencies(dependentElement);
-			checkADIDependencies(subDependencies, annotationHandlersFromTarget, annotatedElementsMap, extractedModel);
+			AnnotationHandler<?> annotationHandlerForDependency = annotationHandlersFromTarget.get(dependencyAnnotation.getCanonicalName());			
+			Map<Element, Class<? extends Annotation>> subDependencies = annotationHandlerForDependency.getDependencies(dependentElement);
+			checkADIDependencies(subDependencies, annotationHandlersFromTarget, annotatedElementsMap, analizedDependencies, extractedModel);
 		}
 	}
 

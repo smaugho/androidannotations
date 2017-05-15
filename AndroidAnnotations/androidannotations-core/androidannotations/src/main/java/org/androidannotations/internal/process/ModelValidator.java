@@ -16,6 +16,7 @@
  */
 package org.androidannotations.internal.process;
 
+import java.lang.annotation.Annotation;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -25,6 +26,7 @@ import java.util.Set;
 
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
+import javax.lang.model.element.ElementKind;
 
 import org.androidannotations.AndroidAnnotationsEnvironment;
 import org.androidannotations.ElementValidation;
@@ -38,8 +40,10 @@ import org.androidannotations.logger.LoggerFactory;
 
 import com.dspot.declex.api.external.External;
 import com.dspot.declex.api.external.ExternalPopulate;
+import com.dspot.declex.api.external.ExternalRecollect;
 import com.dspot.declex.api.model.Model;
 import com.dspot.declex.api.viewsinjection.Populate;
+import com.dspot.declex.api.viewsinjection.Recollect;
 import com.dspot.declex.helper.FilesCacheHelper;
 import com.dspot.declex.util.TypeUtils;
 import com.dspot.declex.util.TypeUtils.ClassInformation;
@@ -71,7 +75,7 @@ public class ModelValidator {
 		final Map<String, Map<Element, Element>> beanAndModelParents = new HashMap<>();
 		
 		Set<Element> beanAndModelAnnotatedElements = null;
-		Set<Element> externalPopulateElements = new HashSet<>();
+		Set<Element> externalPopulateOrRecollectElements = new HashSet<>();
 		
 		for (AnnotationHandler annotationHandler : environment.getHandlers()) {
 			
@@ -102,9 +106,18 @@ public class ModelValidator {
 					
 					final boolean hasExternal = adiHelper.hasAnnotation(realAnnotatedElement, External.class);
 					final boolean hasExternalPopulate = adiHelper.hasAnnotation(realAnnotatedElement, ExternalPopulate.class);
+					final boolean hasExternalRecollect = adiHelper.hasAnnotation(realAnnotatedElement, ExternalRecollect.class);
+					
+					if (annotationHandler.getTarget().equals(External.class.getCanonicalName()) 
+						&& realAnnotatedElement.getKind().equals(ElementKind.CLASS)) {
+						//@External is not processed when it is over a CLASS
+						//this is intended to be used only for ADI purposes
+						continue;
+					}
 					
 					//This kind of annotation will be processed only in the parents (containers of Beans and Models)
-					if (hasExternal || hasExternalPopulate) {
+					if ((hasExternal || hasExternalPopulate || hasExternalRecollect)
+						&& !realAnnotatedElement.getKind().equals(ElementKind.CLASS)) {
 						
 						if (beanAndModelAnnotatedElements == null) {
 							beanAndModelAnnotatedElements = new HashSet<>();
@@ -136,6 +149,8 @@ public class ModelValidator {
 							final Set<Element> virtualElements = new HashSet<>();
 							virtualElementsMap.put(realAnnotatedElement, virtualElements);
 							
+							Set<Class<? extends Annotation>> adiForElement = environment.getADIOnElement(realAnnotatedElement);
+							
 							if (filesCacheHelper.isAncestor(rootElementClass)) {
 								
 								Set<String> subClasses = filesCacheHelper.getAncestorSubClasses(rootElementClass);
@@ -148,10 +163,15 @@ public class ModelValidator {
 											VirtualElement virtualElement = VirtualElement.from(realAnnotatedElement);
 											virtualElement.setEnclosingElement(parentReference.getKey());
 											virtualElement.setReference(parentReference.getValue());
-											virtualElements.add(virtualElement);					
+											virtualElements.add(virtualElement);				
 											
-											if (hasExternalPopulate) {
-												externalPopulateElements.add(virtualElement);
+											//Add ADI to virtual elements
+											for (Class<? extends Annotation> annotation : adiForElement) {
+												environment.addAnnotationToADI(virtualElement, annotation);
+											}
+											
+											if (hasExternalPopulate || hasExternalRecollect) {
+												externalPopulateOrRecollectElements.add(virtualElement);
 											}
 											
 										}
@@ -166,8 +186,13 @@ public class ModelValidator {
 										virtualElement.setReference(parentReference.getValue());
 										virtualElements.add(virtualElement);
 										
-										if (hasExternalPopulate) {
-											externalPopulateElements.add(virtualElement);
+										//Add ADI to virtual elements
+										for (Class<? extends Annotation> annotation : adiForElement) {
+											environment.addAnnotationToADI(virtualElement, annotation);
+										}
+										
+										if (hasExternalPopulate || hasExternalRecollect) {
+											externalPopulateOrRecollectElements.add(virtualElement);
 										}
 									}
 								}								
@@ -183,9 +208,7 @@ public class ModelValidator {
 							
 							//@Populate will be applied in this case only to the virtual elements 
 							if (annotationHandler.getTarget().equals(Populate.class.getCanonicalName())) {
-								//allAnnotatedElements = virtualElementsMap.get(realAnnotatedElement);
-								//TODO: ignore
-								continue;
+								allAnnotatedElements = virtualElementsMap.get(realAnnotatedElement);
 							}
 							
 							//@ExternalPopulate is applied to the real and virtual elements as well
@@ -194,6 +217,17 @@ public class ModelValidator {
 							}
 						}
 						
+						if (hasExternalRecollect) {
+							//@Recollect will be applied in this case only to the virtual elements 
+							if (annotationHandler.getTarget().equals(Recollect.class.getCanonicalName())) {
+								allAnnotatedElements = virtualElementsMap.get(realAnnotatedElement);
+							}
+							
+							//@ExternalRecollect is applied to the real and virtual elements as well
+							if (annotationHandler.getTarget().equals(ExternalRecollect.class.getCanonicalName())) {
+								allAnnotatedElements.addAll(virtualElementsMap.get(realAnnotatedElement));
+							}
+						}
 					}
 					
 					for (Element annotatedElement : allAnnotatedElements) {

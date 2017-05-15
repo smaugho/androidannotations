@@ -62,9 +62,11 @@ public class AnnotationHelper {
 	private static final Logger LOGGER = LoggerFactory.getLogger(AnnotationHelper.class);
 
 	private final AndroidAnnotationsEnvironment environment;
+	private final ADIHelper adiHelper;
 
 	public AnnotationHelper(AndroidAnnotationsEnvironment environment) {
 		this.environment = environment;
+		this.adiHelper = new ADIHelper(environment);
 	}
 
 	public AndroidAnnotationsEnvironment getEnvironment() {
@@ -460,7 +462,7 @@ public class AnnotationHelper {
 
 	public boolean hasOneOfClassAnnotations(Element element, List<Class<? extends Annotation>> validAnnotations) {
 		for (Class<? extends Annotation> validAnnotation : validAnnotations) {
-			if (element.getAnnotation(validAnnotation) != null) {
+			if (adiHelper.getAnnotation(element, validAnnotation) != null) {
 				return true;
 			}
 		}

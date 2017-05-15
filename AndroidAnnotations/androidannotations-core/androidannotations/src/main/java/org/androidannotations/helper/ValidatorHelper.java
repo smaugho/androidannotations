@@ -361,7 +361,7 @@ public class ValidatorHelper {
 				return true;
 			}
 		}
-		return false;
+		return environment().getADIOnElement(element).contains(annotation);
 	}
 
 	public int numberOfElementParameterHasAnnotation(ExecutableElement element, Class<? extends Annotation> annotation) {

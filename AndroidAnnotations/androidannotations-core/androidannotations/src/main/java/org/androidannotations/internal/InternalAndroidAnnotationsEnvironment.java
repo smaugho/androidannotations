@@ -26,7 +26,7 @@ import java.util.Set;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.Element;
-import javax.lang.model.element.TypeElement;
+import javax.lang.model.element.ElementKind;
 
 import org.androidannotations.AndroidAnnotationsEnvironment;
 import org.androidannotations.Option;
@@ -58,7 +58,7 @@ public class InternalAndroidAnnotationsEnvironment implements AndroidAnnotations
 
 	private ProcessHolder processHolder;
 	
-	private Map<String, Set<Class<? extends Annotation>>> adiForTypeElementNames = new HashMap<>();
+	private Map<String, Set<Class<? extends Annotation>>> adiForElement = new HashMap<>();
 
 	InternalAndroidAnnotationsEnvironment(ProcessingEnvironment processingEnvironment) {
 		this.processingEnvironment = processingEnvironment;
@@ -228,33 +228,49 @@ public class InternalAndroidAnnotationsEnvironment implements AndroidAnnotations
 	
 	@Override
 	public Set<Class<? extends Annotation>> getADIOnElement(Element element) {
-		if (!(element instanceof TypeElement)) return Collections.emptySet();
+		String elementName = getElementName(element);		
 		
-		String elementClassName = element.asType().toString();
-		if (!adiForTypeElementNames.containsKey(elementClassName)) return Collections.emptySet();
+		if (!adiForElement.containsKey(elementName)) {			
+			return Collections.emptySet();
+		}
 		
-		return adiForTypeElementNames.get(elementClassName);
+		return adiForElement.get(elementName);
 	}
 	
 	@Override
 	public Set<Class<? extends Annotation>> getADIForClass(String clazz) {
-		if (!adiForTypeElementNames.containsKey(clazz)) return Collections.emptySet();
-		return adiForTypeElementNames.get(clazz);
+		if (!adiForElement.containsKey(clazz)) return Collections.emptySet();
+		return adiForElement.get(clazz);
 	}
 	
 	@Override
-	public void addAnnotationToADI(Element element, Class<? extends Annotation> annotation) {
-		this.addAnnotationToADI(element.asType().toString(), annotation);
+	public void addAnnotationToADI(Element element, Class<? extends Annotation> annotation) {	
+		this.addAnnotationToADI(getElementName(element), annotation);
 	}
 
 	@Override
-	public void addAnnotationToADI(String clazz, Class<? extends Annotation> annotation) {
-		Set<Class<? extends Annotation>> clazzAdi = adiForTypeElementNames.get(clazz);
-		if (clazzAdi == null) {
-			clazzAdi = new HashSet<>();
-			adiForTypeElementNames.put(clazz, clazzAdi);
+	public void addAnnotationToADI(String name, Class<? extends Annotation> annotation) {
+		
+		Set<Class<? extends Annotation>> adiAnnotations = adiForElement.get(name);
+		if (adiAnnotations == null) {
+			adiAnnotations = new HashSet<>();
+			adiForElement.put(name, adiAnnotations);
 		}
 		
-		clazzAdi.add(annotation);
+		adiAnnotations.add(annotation);
+	}
+	
+	private String getElementName(Element element) {
+		String name = null; 
+		
+		Element enclosingElement = element;
+		do {
+			if (name == null) name = enclosingElement.toString();
+			else name = enclosingElement.toString() + ":" + name;
+			
+			enclosingElement = enclosingElement.getEnclosingElement();
+		} while (!enclosingElement.getKind().equals(ElementKind.PACKAGE));
+		
+		return name;
 	}
 }

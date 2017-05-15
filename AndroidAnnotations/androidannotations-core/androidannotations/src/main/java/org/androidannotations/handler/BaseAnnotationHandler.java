@@ -88,13 +88,13 @@ public abstract class BaseAnnotationHandler<T extends GeneratedClassHolder> impl
 	}
 	
 	@Override
-	public Map<Class<? extends Annotation>, Element> getDependencies(Element element) {
-		Map<Class<? extends Annotation>, Element> dependencies = new HashMap<>();
+	public Map<Element, Class<? extends Annotation>> getDependencies(Element element) {
+		Map<Element, Class<? extends Annotation>> dependencies = new HashMap<>();
 		getDependencies(element, dependencies);
 		return Collections.unmodifiableMap(dependencies);
 	}
 	
-	public void getDependencies(Element element, Map<Class<? extends Annotation>, Element> dependencies) {}
+	public void getDependencies(Element element, Map<Element, Class<? extends Annotation>> dependencies) {}
 	
 	@Override
 	public ElementValidation validate(Element element) {
