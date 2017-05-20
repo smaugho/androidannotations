@@ -38,16 +38,16 @@ import org.androidannotations.internal.model.AnnotationElementsHolder;
 import org.androidannotations.logger.Logger;
 import org.androidannotations.logger.LoggerFactory;
 
-import com.dspot.declex.api.external.External;
-import com.dspot.declex.api.external.ExternalPopulate;
-import com.dspot.declex.api.external.ExternalRecollect;
-import com.dspot.declex.api.model.Model;
-import com.dspot.declex.api.viewsinjection.Populate;
-import com.dspot.declex.api.viewsinjection.Recollect;
+import com.dspot.declex.annotation.External;
+import com.dspot.declex.annotation.ExternalPopulate;
+import com.dspot.declex.annotation.ExternalRecollect;
+import com.dspot.declex.annotation.Model;
+import com.dspot.declex.annotation.Populate;
+import com.dspot.declex.annotation.Recollect;
 import com.dspot.declex.helper.FilesCacheHelper;
 import com.dspot.declex.util.TypeUtils;
 import com.dspot.declex.util.TypeUtils.ClassInformation;
-import com.dspot.declex.util.element.VirtualElement;
+import com.dspot.declex.wrapper.element.VirtualElement;
 
 public class ModelValidator {
 

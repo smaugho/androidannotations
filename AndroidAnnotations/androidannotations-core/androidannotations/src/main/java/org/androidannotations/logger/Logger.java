@@ -18,7 +18,7 @@ package org.androidannotations.logger;
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
 
-import com.dspot.declex.util.element.VirtualElement;
+import com.dspot.declex.wrapper.element.VirtualElement;
 
 public class Logger {
 

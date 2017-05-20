@@ -26,7 +26,7 @@ import org.androidannotations.handler.BaseAnnotationHandler;
 import org.androidannotations.handler.GeneratingAnnotationHandler;
 import org.androidannotations.holder.EIntentServiceHolder;
 
-import com.dspot.declex.action.ActionHelper;
+import com.dspot.declex.helper.ActionHelper;
 import com.dspot.declex.util.TypeUtils;
 
 public class EIntentServiceHandler extends BaseAnnotationHandler<EIntentServiceHolder> implements GeneratingAnnotationHandler<EIntentServiceHolder> {

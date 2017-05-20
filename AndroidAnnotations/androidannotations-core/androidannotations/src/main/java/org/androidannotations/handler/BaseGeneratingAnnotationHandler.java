@@ -23,7 +23,7 @@ import org.androidannotations.AndroidAnnotationsEnvironment;
 import org.androidannotations.ElementValidation;
 import org.androidannotations.holder.GeneratedClassHolder;
 
-import com.dspot.declex.action.ActionHelper;
+import com.dspot.declex.helper.ActionHelper;
 import com.dspot.declex.util.TypeUtils;
 
 public abstract class BaseGeneratingAnnotationHandler<T extends GeneratedClassHolder> extends BaseAnnotationHandler<T> implements GeneratingAnnotationHandler<T> {
