@@ -87,7 +87,9 @@ public interface AndroidAnnotationsEnvironment {
 	
 	Set<Class<? extends Annotation>> getADIOnElement(Element element);
 	
-	void addAnnotationToADI(Element element, Class<? extends Annotation> annotation);
+	Set<Annotation> getADIAnnotationsOnElement(Element element, Class<? extends Annotation> annotationClass);
 	
-	void addAnnotationToADI(String clazz, Class<? extends Annotation> annotation);
+	void addAnnotationToADI(Element element, Object annotation);
+	
+	void addAnnotationToADI(String clazz, Object annotation);
 }

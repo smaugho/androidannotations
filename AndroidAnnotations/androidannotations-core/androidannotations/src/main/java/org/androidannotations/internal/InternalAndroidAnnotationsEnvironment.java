@@ -16,6 +16,9 @@
 package org.androidannotations.internal;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -58,7 +61,8 @@ public class InternalAndroidAnnotationsEnvironment implements AndroidAnnotations
 
 	private ProcessHolder processHolder;
 	
-	private Map<String, Set<Class<? extends Annotation>>> adiForElement = new HashMap<>();
+	private Map<String, Set<Class<? extends Annotation>>> adiClassForElement = new HashMap<>();
+	private Map<String, Set<Annotation>> adiInstanceForElement = new HashMap<>();
 
 	InternalAndroidAnnotationsEnvironment(ProcessingEnvironment processingEnvironment) {
 		this.processingEnvironment = processingEnvironment;
@@ -230,34 +234,61 @@ public class InternalAndroidAnnotationsEnvironment implements AndroidAnnotations
 	public Set<Class<? extends Annotation>> getADIOnElement(Element element) {
 		String elementName = getElementName(element);		
 		
-		if (!adiForElement.containsKey(elementName)) {			
+		if (!adiClassForElement.containsKey(elementName)) {			
 			return Collections.emptySet();
 		}
 		
-		return adiForElement.get(elementName);
+		return adiClassForElement.get(elementName);
 	}
 	
 	@Override
 	public Set<Class<? extends Annotation>> getADIForClass(String clazz) {
-		if (!adiForElement.containsKey(clazz)) return Collections.emptySet();
-		return adiForElement.get(clazz);
+		if (!adiClassForElement.containsKey(clazz)) return Collections.emptySet();
+		return adiClassForElement.get(clazz);
 	}
 	
 	@Override
-	public void addAnnotationToADI(Element element, Class<? extends Annotation> annotation) {	
+	public Set<Annotation> getADIAnnotationsOnElement(Element element, Class<? extends Annotation> annotationClass) {
+		String elementName = getElementName(element);
+		
+		if (!adiClassForElement.containsKey(elementName)) {			
+			return null;
+		}
+		
+		return adiInstanceForElement.get(elementName);
+	}
+	
+	@Override
+	public void addAnnotationToADI(Element element, Object annotation) {	
 		this.addAnnotationToADI(getElementName(element), annotation);
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
-	public void addAnnotationToADI(String name, Class<? extends Annotation> annotation) {
+	public void addAnnotationToADI(String name, Object annotation) {
 		
-		Set<Class<? extends Annotation>> adiAnnotations = adiForElement.get(name);
-		if (adiAnnotations == null) {
-			adiAnnotations = new HashSet<>();
-			adiForElement.put(name, adiAnnotations);
+		Set<Class<? extends Annotation>> adiClassAnnotations = adiClassForElement.get(name);
+		if (adiClassAnnotations == null) {
+			adiClassAnnotations = new HashSet<>();
+			adiClassForElement.put(name, adiClassAnnotations);
 		}
 		
-		adiAnnotations.add(annotation);
+		Set<Annotation> adiInstanceAnnotations = adiInstanceForElement.get(name);
+		if (adiInstanceAnnotations == null) {
+			adiInstanceAnnotations = new HashSet<>();
+			adiInstanceForElement.put(name, adiInstanceAnnotations);
+		}
+
+		if (annotation instanceof Annotation) {
+			adiClassAnnotations.add(((Annotation)annotation).getClass());
+			adiInstanceAnnotations.add((Annotation)annotation);
+		}
+		
+		if (annotation instanceof Class) {
+			adiClassAnnotations.add((Class<? extends Annotation>)annotation);
+			adiInstanceAnnotations.add(annotationFrom((Class<? extends Annotation>)annotation));
+		}
+		
 	}
 	
 	private String getElementName(Element element) {
@@ -272,5 +303,48 @@ public class InternalAndroidAnnotationsEnvironment implements AndroidAnnotations
 		} while (!enclosingElement.getKind().equals(ElementKind.PACKAGE));
 		
 		return name;
+	}
+	
+	@SuppressWarnings("unchecked")
+	private static <A extends Annotation> A annotationFrom(Class<A> annotation) {
+		return (A) Proxy.newProxyInstance(
+				annotation.getClassLoader(),
+				new Class[] { annotation }, 
+				new ProxyAnnotation()
+			);
+	}
+	
+	static class ProxyAnnotation implements InvocationHandler {
+
+		private static final Method OBJECT_EQUALS = getObjectMethod("equals", Object.class);
+		private static final Method OBJECT_HASHCODE = getObjectMethod("hashCode");
+		
+		public Object invoke(Object proxy, Method method, Object[] args)
+				throws Throwable {
+			
+			if (OBJECT_EQUALS == method) {
+                return this.equals(args[0]);
+            }
+
+            if (OBJECT_HASHCODE == method) {
+              return this.hashCode();
+            }
+			
+			if (method.getName().equals("hashCode") && (args == null || args.length==0)) {
+				return this.hashCode();
+			}
+			
+			return method.getDefaultValue();
+		}
+		
+		private static Method getObjectMethod(String name, Class<?> ... types) {
+            try {
+                // null 'types' is OK.
+                return Object.class.getMethod(name, types);
+            }
+            catch (NoSuchMethodException e) {
+                throw new IllegalArgumentException(e);
+            }
+        }
 	}
 }

@@ -15,7 +15,6 @@
  */
 package org.androidannotations.handler;
 
-import java.lang.annotation.Annotation;
 import java.util.Map;
 
 import javax.lang.model.element.Element;
@@ -38,7 +37,8 @@ public interface AnnotationHandler<T extends GeneratedClassHolder> {
 	
 	String getBeforeTarget();
 	
-	Map<Element, Class<? extends Annotation>> getDependencies(Element element);
+	//Object in the Map can be a Class<? extends Annotation> or an Annotation
+	Map<Element, Object> getDependencies(Element element);
 	
 	boolean isEnabled();
 }

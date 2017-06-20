@@ -27,6 +27,7 @@ import java.util.List;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.VariableElement;
+import javax.lang.model.type.TypeMirror;
 
 import org.androidannotations.AndroidAnnotationsEnvironment;
 import org.androidannotations.ElementValidation;
@@ -107,8 +108,9 @@ public class ServiceActionHandler extends BaseAnnotationHandler<EIntentServiceHo
 				String extraParamName = paramName + "Extra";
 				JFieldVar paramVar = getStaticExtraField(holder, paramName);
 				AbstractJClass extraParamClass = codeModelHelper.typeMirrorToJClass(param.asType());
-
-				BundleHelper bundleHelper = new BundleHelper(getEnvironment(), param.asType());
+				
+				TypeMirror actualType = codeModelHelper.getActualTypeOfEnclosingElementOfInjectedElement(holder, param);
+				BundleHelper bundleHelper = new BundleHelper(getEnvironment(), actualType);
 				IJExpression getExtraExpression = bundleHelper.getExpressionToRestoreFromBundle(extraParamClass, extras, paramVar, onHandleIntentMethod);
 
 				JVar extraField = callActionBlock.decl(extraParamClass, extraParamName, getExtraExpression);

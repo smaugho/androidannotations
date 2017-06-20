@@ -15,7 +15,6 @@
  */
 package org.androidannotations.handler;
 
-import java.lang.annotation.Annotation;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -88,13 +87,13 @@ public abstract class BaseAnnotationHandler<T extends GeneratedClassHolder> impl
 	}
 	
 	@Override
-	public Map<Element, Class<? extends Annotation>> getDependencies(Element element) {
-		Map<Element, Class<? extends Annotation>> dependencies = new HashMap<>();
+	public Map<Element, Object> getDependencies(Element element) {
+		Map<Element, Object> dependencies = new HashMap<>();
 		getDependencies(element, dependencies);
 		return Collections.unmodifiableMap(dependencies);
 	}
 	
-	public void getDependencies(Element element, Map<Element, Class<? extends Annotation>> dependencies) {}
+	public void getDependencies(Element element, Map<Element, Object> dependencies) {}
 	
 	@Override
 	public ElementValidation validate(Element element) {

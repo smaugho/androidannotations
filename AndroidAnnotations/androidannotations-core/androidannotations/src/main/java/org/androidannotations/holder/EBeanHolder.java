@@ -42,6 +42,7 @@ public class EBeanHolder extends EComponentWithViewSupportHolder {
 
 	private JFieldVar contextField;
 	private JMethod constructor;
+	private JMethod factoryMethod;
 
 	public EBeanHolder(AndroidAnnotationsEnvironment environment, TypeElement annotatedElement) throws Exception {
 		super(environment, annotatedElement);
@@ -86,7 +87,7 @@ public class EBeanHolder extends EComponentWithViewSupportHolder {
 
 		AbstractJClass narrowedGeneratedClass = codeModelHelper.narrowGeneratedClass(generatedClass, annotatedElement.asType());
 
-		JMethod factoryMethod = generatedClass.method(PUBLIC | STATIC, narrowedGeneratedClass, GET_INSTANCE_METHOD_NAME);
+		factoryMethod = generatedClass.method(PUBLIC | STATIC, narrowedGeneratedClass, GET_INSTANCE_METHOD_NAME);
 
 		codeModelHelper.generify(factoryMethod, annotatedElement);
 
@@ -113,6 +114,10 @@ public class EBeanHolder extends EComponentWithViewSupportHolder {
 		} else {
 			factoryMethodBody._return(_new(narrowedGeneratedClass).arg(factoryMethodContextParam));
 		}
+	}
+	
+	public JMethod getFactoryMethod() {
+		return factoryMethod;
 	}
 
 	public void createRebindMethod() {
