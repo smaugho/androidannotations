@@ -64,6 +64,9 @@ import org.androidannotations.annotations.ViewById;
 import org.androidannotations.internal.core.model.AndroidSystemServices;
 import org.androidannotations.internal.model.AnnotationElements;
 
+import com.dspot.declex.annotation.Export;
+import com.dspot.declex.annotation.External;
+
 @SuppressWarnings("checkstyle:methodcount")
 public class ValidatorHelper {
 
@@ -241,6 +244,10 @@ public class ValidatorHelper {
 	public void doesNotHaveAnyOfSupportedAnnotations(Element element, ElementValidation validation) {
 		Set<String> supportedAnnotationTypes = environment().getSupportedAnnotationTypes();
 		for (AnnotationMirror annotationMirror : element.getAnnotationMirrors()) {
+			
+			if (annotationMirror.getAnnotationType().toString().equals(External.class.getCanonicalName())) continue;
+			if (annotationMirror.getAnnotationType().toString().equals(Export.class.getCanonicalName())) continue;
+			
 			if (supportedAnnotationTypes.contains(annotationMirror.getAnnotationType().toString())) {
 				validation.addError(element,
 						"method injection does only allow the annotation to be placed on the method OR on each parameter.");

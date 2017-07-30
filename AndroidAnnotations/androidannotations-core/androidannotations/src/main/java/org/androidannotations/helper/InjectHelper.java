@@ -31,6 +31,7 @@ import org.androidannotations.ElementValidation;
 import org.androidannotations.handler.MethodInjectionHandler;
 import org.androidannotations.holder.GeneratedClassHolder;
 
+import com.dspot.declex.wrapper.element.VirtualElement;
 import com.helger.jcodemodel.AbstractJClass;
 import com.helger.jcodemodel.IJExpression;
 import com.helger.jcodemodel.JBlock;
@@ -46,7 +47,7 @@ public class InjectHelper<T extends GeneratedClassHolder> {
 
 	private final ValidatorHelper validatorHelper;
 	private final MethodInjectionHandler<T> handler;
-	private final APTCodeModelHelper codeModelHelper;
+	private APTCodeModelHelper codeModelHelper;
 
 	public InjectHelper(ValidatorHelper validatorHelper, MethodInjectionHandler<T> handler) {
 		this.codeModelHelper = new APTCodeModelHelper(validatorHelper.environment());
@@ -112,7 +113,9 @@ public class InjectHelper<T extends GeneratedClassHolder> {
 
 		for (int paramIndex = 0; paramIndex < paramCount; paramIndex++) {
 			VariableElement param = parameters.get(paramIndex);
-			if (param.equals(element)) {
+			if (param.equals(element) || 
+				(element instanceof VirtualElement && param.equals(((VirtualElement) element).getElement()))) {
+				
 				AbstractJClass type = codeModelHelper.typeMirrorToJClass(param.asType());
 				JVar fieldRef = targetBlock.decl(type, param.getSimpleName().toString(), getDefault(param.asType()));
 

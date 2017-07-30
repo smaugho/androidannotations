@@ -188,19 +188,16 @@ public class AndroidAnnotationProcessor extends AbstractProcessor {
 		AnnotationElementsHolder validatingHolder = extractedModel.validatingHolder();
 		androidAnnotationsEnv.setValidatedElements(validatingHolder);
 
-		//Ignore Manifest and R Class for internal build
-		if (!processingEnv.getOptions().containsKey("internal")) {
-			try {
-				AndroidManifest androidManifest = extractAndroidManifest();
-				LOGGER.info("AndroidManifest.xml found: {}", androidManifest);
-	
-				IRClass rClass = findRClasses(androidManifest);
-	
-				androidAnnotationsEnv.setAndroidEnvironment(rClass, androidManifest);
-	
-			} catch (Exception e) {
-				return;
-			}
+		try {
+			AndroidManifest androidManifest = extractAndroidManifest();
+			LOGGER.info("AndroidManifest.xml found: {}", androidManifest);
+
+			IRClass rClass = findRClasses(androidManifest);
+
+			androidAnnotationsEnv.setAndroidEnvironment(rClass, androidManifest);
+
+		} catch (Exception e) {
+			return;
 		}
 
 		AnnotationElements validatedModel = validateAnnotations(extractedModel, validatingHolder);

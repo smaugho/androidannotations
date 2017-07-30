@@ -55,7 +55,7 @@ import com.helger.jcodemodel.JVar;
 public class FragmentArgHandler extends BaseAnnotationHandler<EFragmentHolder>
 		implements MethodInjectionHandler<EFragmentHolder>, MethodInjectionHandler.AfterAllParametersInjectedHandler<EFragmentHolder> {
 
-	private final InjectHelper<EFragmentHolder> injectHelper;
+	protected final InjectHelper<EFragmentHolder> injectHelper;
 
 	public FragmentArgHandler(AndroidAnnotationsEnvironment environment) {
 		super(FragmentArg.class, environment);
@@ -158,7 +158,7 @@ public class FragmentArgHandler extends BaseAnnotationHandler<EFragmentHolder>
 
 		for (ArgHelper argHelper : argHelpers) {
 			String fieldName = argHelper.param.getSimpleName().toString();
-
+			
 			TypeMirror actualType = codeModelHelper.getActualTypeOfEnclosingElementOfInjectedElement(holder, argHelper.param);
 			BundleHelper bundleHelper = new BundleHelper(getEnvironment(), actualType);
 
@@ -175,7 +175,7 @@ public class FragmentArgHandler extends BaseAnnotationHandler<EFragmentHolder>
 		builderMethod.body()._return(_this());
 	}
 
-	private static class ArgHelper {
+	protected static class ArgHelper {
 		private final Element param;
 		private final String argKey;
 

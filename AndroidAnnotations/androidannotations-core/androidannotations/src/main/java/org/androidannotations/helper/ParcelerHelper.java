@@ -93,7 +93,7 @@ public class ParcelerHelper extends AnnotationHelper {
 
 			if (SUPPORTED_PARCEL_TYPES.containsKey(name)) {
 				boolean genericsMatch = true;
-
+				
 				Integer genericsSize = SUPPORTED_PARCEL_TYPES.get(name);
 				if (genericsSize == declaredType.getTypeArguments().size()
 						&& (!root || genericsSize > 0)) {
