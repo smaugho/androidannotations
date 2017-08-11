@@ -239,7 +239,7 @@ public class AndroidAnnotationProcessor extends AbstractProcessor {
 		}
 	}
 	
-	private void runAnnotationDependencyInjection(AnnotationElementsHolder extractedModel) {
+	protected void runAnnotationDependencyInjection(AnnotationElementsHolder extractedModel) {
 		
 		timeStats.start("Run ADI");
 		

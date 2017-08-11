@@ -109,7 +109,10 @@ public class ModelValidator {
 					
 					final boolean isExported = adiHelper.hasAnnotation(realAnnotatedElement, Export.class);
 					if (isExported && !(realAnnotatedElement instanceof VirtualElement)) {
-						continue;
+						if (!annotationHandler.getTarget().equals(Export.class.getCanonicalName())
+							&& !realAnnotatedElement.getKind().isField()) {
+							continue;
+						}						
 					}
 					
 					Set<Element> allAnnotatedElements = new HashSet<>();					
