@@ -158,7 +158,16 @@ public abstract class EComponentWithViewSupportHolder extends EComponentHolder i
 	}
 
 	public JInvocation findViewById(JFieldRef idRef) {
-		JInvocation findViewById = invoke(getOnViewChangedHasViewsParam(), "internalFindViewById");
+		
+		JVar hasView = getOnViewChangedHasViewsParam();
+		
+		JInvocation findViewById;
+		if (hasView.name().equals("hasViews")) {
+			findViewById = invoke(hasView, "internalFindViewById");
+		} else {
+			findViewById = invoke(hasView, "findViewById");
+		}
+		
 		findViewById.arg(idRef);
 		return findViewById;
 	}
@@ -180,9 +189,12 @@ public abstract class EComponentWithViewSupportHolder extends EComponentHolder i
 	protected FoundViewHolder createFoundViewAndIfNotNullBlock(JFieldRef idRef, AbstractJClass viewClass, IJAssignmentTarget fieldRef) {
 		IJExpression findViewExpression = findViewById(idRef);
 		JBlock block = getOnViewChangedBodyBeforeInjectionBlock();
-
+		JVar hasView = getOnViewChangedHasViewsParam();
+		
 		if (viewClass == null) {
 			viewClass = getClasses().VIEW;
+		} else if (viewClass != getClasses().VIEW && !hasView.name().equals("hasViews")) {
+			findViewExpression = cast(viewClass, findViewExpression);
 		}
 
 		IJAssignmentTarget foundView = fieldRef;
