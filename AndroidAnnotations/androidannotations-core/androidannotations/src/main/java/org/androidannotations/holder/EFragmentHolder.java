@@ -21,6 +21,7 @@ import static com.helger.jcodemodel.JExpr.TRUE;
 import static com.helger.jcodemodel.JExpr._new;
 import static com.helger.jcodemodel.JExpr._null;
 import static com.helger.jcodemodel.JExpr._super;
+import static com.helger.jcodemodel.JExpr.cond;
 import static com.helger.jcodemodel.JExpr.invoke;
 import static com.helger.jcodemodel.JExpr.ref;
 import static com.helger.jcodemodel.JMod.PRIVATE;
@@ -38,12 +39,14 @@ import org.androidannotations.holder.ReceiverRegistrationDelegate.IntentFilterDa
 
 import com.helger.jcodemodel.AbstractJClass;
 import com.helger.jcodemodel.IJAssignmentTarget;
+import com.helger.jcodemodel.IJExpression;
 import com.helger.jcodemodel.JBlock;
 import com.helger.jcodemodel.JClassAlreadyExistsException;
 import com.helger.jcodemodel.JDefinedClass;
 import com.helger.jcodemodel.JExpr;
 import com.helger.jcodemodel.JFieldRef;
 import com.helger.jcodemodel.JFieldVar;
+import com.helger.jcodemodel.JInvocation;
 import com.helger.jcodemodel.JMethod;
 import com.helger.jcodemodel.JMod;
 import com.helger.jcodemodel.JVar;
@@ -66,6 +69,7 @@ public class EFragmentHolder extends EComponentWithViewSupportHolder implements 
 	private ReceiverRegistrationDelegate<EFragmentHolder> receiverRegistrationDelegate;
 	private PreferencesDelegate preferencesDelegate;
 	private JBlock onCreateOptionsMenuMethodBody;
+	private JBlock onCreateOptionsMenuMethodInflateBody;
 	private JVar onCreateOptionsMenuMenuInflaterVar;
 	private JVar onCreateOptionsMenuMenuParam;
 	private JVar onOptionsItemSelectedItem;
@@ -99,7 +103,6 @@ public class EFragmentHolder extends EComponentWithViewSupportHolder implements 
 		JBlock onCreateBody = onCreate.body();
 
 		JVar previousNotifier = viewNotifierHelper.replacePreviousNotifier(onCreateBody);
-		setFindViewById();
 		onCreateBody.invoke(getInit()).arg(onCreateSavedInstanceState);
 		onCreateBody.invoke(_super(), onCreate).arg(onCreateSavedInstanceState);
 		onCreateAfterSuperBlock = onCreateBody.blockSimple();
@@ -116,20 +119,10 @@ public class EFragmentHolder extends EComponentWithViewSupportHolder implements 
 		viewNotifierHelper.invokeViewChanged(onViewCreatedBody);
 	}
 
-	private void setFindViewById() {
-		JMethod findViewById = generatedClass.method(PUBLIC, getClasses().VIEW, "findViewById");
-		findViewById.annotate(Override.class);
-
-		JVar idParam = findViewById.param(getCodeModel().INT, "id");
-
-		JBlock body = findViewById.body();
-
+	public IJExpression getFindViewByIdExpression(JVar idParam) {
 		JFieldVar contentView = getContentView();
-
-		body._if(contentView.eq(_null())) //
-			._then()._return(_null());
-
-		body._return(contentView.invoke(findViewById).arg(idParam));
+		JInvocation invocation = contentView.invoke("findViewById").arg(idParam);
+		return cond(contentView.eq(_null()), _null(), invocation);
 	}
 
 	private void setFragmentBuilder() throws JClassAlreadyExistsException {
@@ -169,6 +162,7 @@ public class EFragmentHolder extends EComponentWithViewSupportHolder implements 
 		JBlock methodBody = method.body();
 		onCreateOptionsMenuMenuParam = method.param(getClasses().MENU, "menu");
 		onCreateOptionsMenuMenuInflaterVar = method.param(getClasses().MENU_INFLATER, "inflater");
+		onCreateOptionsMenuMethodInflateBody = methodBody.blockSimple();
 		onCreateOptionsMenuMethodBody = methodBody.blockSimple();
 		methodBody.invoke(_super(), method).arg(onCreateOptionsMenuMenuParam).arg(onCreateOptionsMenuMenuInflaterVar);
 
@@ -258,14 +252,14 @@ public class EFragmentHolder extends EComponentWithViewSupportHolder implements 
 		onDestroyViewAfterSuperBlock = body.blockSimple();
 	}
 
-	private JBlock getOnDestroyViewAfterSuperBlock() {
+	public JBlock getOnDestroyViewAfterSuperBlock() {
 		if (onDestroyViewAfterSuperBlock == null) {
 			setContentViewRelatedMethods();
 		}
 		return onDestroyViewAfterSuperBlock;
 	}
 
-	public void clearInjectedView(JFieldRef fieldRef) {
+	public void clearInjectedView(IJAssignmentTarget fieldRef) {
 		JBlock block = getOnDestroyViewAfterSuperBlock();
 		block.assign(fieldRef, _null());
 	}
@@ -402,6 +396,11 @@ public class EFragmentHolder extends EComponentWithViewSupportHolder implements 
 	}
 
 	@Override
+	public JBlock getRestoreStateMethodBody() {
+		return instanceStateDelegate.getRestoreStateMethodBody();
+	}
+
+	@Override
 	public JVar getRestoreStateBundleParam() {
 		return instanceStateDelegate.getRestoreStateBundleParam();
 	}
@@ -412,6 +411,14 @@ public class EFragmentHolder extends EComponentWithViewSupportHolder implements 
 			setOnCreateOptionsMenu();
 		}
 		return onCreateOptionsMenuMethodBody;
+	}
+
+	@Override
+	public JBlock getOnCreateOptionsMenuMethodInflateBody() {
+		if (onCreateOptionsMenuMethodInflateBody == null) {
+			setOnCreateOptionsMenu();
+		}
+		return onCreateOptionsMenuMethodInflateBody;
 	}
 
 	@Override

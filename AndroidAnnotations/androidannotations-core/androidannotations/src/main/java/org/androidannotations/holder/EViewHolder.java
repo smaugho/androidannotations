@@ -35,6 +35,7 @@ import javax.lang.model.element.VariableElement;
 import org.androidannotations.AndroidAnnotationsEnvironment;
 
 import com.helger.jcodemodel.AbstractJClass;
+import com.helger.jcodemodel.IJExpression;
 import com.helger.jcodemodel.JBlock;
 import com.helger.jcodemodel.JExpr;
 import com.helger.jcodemodel.JFieldVar;
@@ -208,6 +209,11 @@ public class EViewHolder extends EComponentWithViewSupportHolder implements HasI
 	}
 
 	@Override
+	public IJExpression getFindViewByIdExpression(JVar idParam) {
+		return JExpr._this().invoke("findViewById").arg(idParam);
+	}
+
+	@Override
 	public JFieldVar getIntentFilterField(ReceiverRegistrationDelegate.IntentFilterData intentFilterData) {
 		return receiverRegistrationDelegate.getIntentFilterField(intentFilterData);
 	}
@@ -264,6 +270,11 @@ public class EViewHolder extends EComponentWithViewSupportHolder implements HasI
 	@Override
 	public JMethod getRestoreStateMethod() {
 		return instanceStateDelegate.getRestoreStateMethod();
+	}
+
+	@Override
+	public JBlock getRestoreStateMethodBody() {
+		return instanceStateDelegate.getRestoreStateMethodBody();
 	}
 
 	@Override
