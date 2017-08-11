@@ -1,5 +1,4 @@
 /**
- * Copyright (C) 2010-2016 eBusiness Information, Excilys Group
  * Copyright (C) 2016-2017 the AndroidAnnotations project
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
@@ -14,10 +13,12 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package org.androidannotations.api.view;
+package org.androidannotations.databinding;
 
-import android.view.View;
+import org.androidannotations.annotations.DataBound;
+import org.androidannotations.annotations.EBean;
 
-public interface HasViews {
-	<T extends View> T internalFindViewById(int id);
+@DataBound
+@EBean
+public class BeanWithDataBoundAnnotation {
 }

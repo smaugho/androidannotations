@@ -46,7 +46,9 @@ public class MessagerAppender extends Appender {
 	}
 
 	@Override
-	public void append(Level level, Element element, AnnotationMirror annotationMirror, String message) {
+	public void append(Level level, Element element,
+			AnnotationMirror annotationMirror, String message) {
+		
 		if (messager == null) {
 			return;
 		}

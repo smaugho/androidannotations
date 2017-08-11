@@ -44,6 +44,7 @@ import com.helger.jcodemodel.JBlock;
 import com.helger.jcodemodel.JDefinedClass;
 import com.helger.jcodemodel.JExpr;
 import com.helger.jcodemodel.JFieldRef;
+import com.helger.jcodemodel.JFieldVar;
 import com.helger.jcodemodel.JInvocation;
 import com.helger.jcodemodel.JMethod;
 import com.helger.jcodemodel.JSwitch;
@@ -60,6 +61,7 @@ public abstract class EComponentWithViewSupportHolder extends EComponentHolder i
 	private JBlock onViewChangedBodyBeforeInjectionBlock;
 	private JVar onViewChangedHasViewsParam;
 	protected Map<String, FoundHolder> foundHolders = new HashMap<>();
+	protected DataBindingDelegate dataBindingDelegate;
 	protected JMethod findNativeFragmentByIdMethod;
 	protected JMethod findSupportFragmentByIdMethod;
 	protected JMethod findNativeFragmentByTagMethod;
@@ -71,8 +73,9 @@ public abstract class EComponentWithViewSupportHolder extends EComponentHolder i
 
 	public EComponentWithViewSupportHolder(AndroidAnnotationsEnvironment environment, TypeElement annotatedElement) throws Exception {
 		super(environment, annotatedElement);
-		viewNotifierHelper = new ViewNotifierHelper(this);
+		viewNotifierHelper = new ViewNotifierHelper(this, environment);
 		keyEventCallbackMethodsDelegate = new KeyEventCallbackMethodsDelegate<>(this);
+		dataBindingDelegate = new DataBindingDelegate(this);
 	}
 	
 	public JMethod getOnViewChanged() {
@@ -80,6 +83,10 @@ public abstract class EComponentWithViewSupportHolder extends EComponentHolder i
 			setOnViewChanged();
 		}
 		return onViewChangedMethod;
+	}
+
+	public IJExpression getFindViewByIdExpression(JVar idParam) {
+		return _null();
 	}
 
 	public JBlock getOnViewChangedBody() {
@@ -151,7 +158,7 @@ public abstract class EComponentWithViewSupportHolder extends EComponentHolder i
 	}
 
 	public JInvocation findViewById(JFieldRef idRef) {
-		JInvocation findViewById = invoke(getOnViewChangedHasViewsParam(), "findViewById");
+		JInvocation findViewById = invoke(getOnViewChangedHasViewsParam(), "internalFindViewById");
 		findViewById.arg(idRef);
 		return findViewById;
 	}
@@ -176,8 +183,6 @@ public abstract class EComponentWithViewSupportHolder extends EComponentHolder i
 
 		if (viewClass == null) {
 			viewClass = getClasses().VIEW;
-		} else if (viewClass != getClasses().VIEW) {
-			findViewExpression = cast(viewClass, findViewExpression);
 		}
 
 		IJAssignmentTarget foundView = fieldRef;
@@ -388,6 +393,14 @@ public abstract class EComponentWithViewSupportHolder extends EComponentHolder i
 	@Override
 	public JVar getOnKeyUpKeyEventParam() {
 		return keyEventCallbackMethodsDelegate.getOnKeyUpKeyEventParam();
+	}
+
+	public JFieldVar getDataBindingField() {
+		return dataBindingDelegate.getDataBindingField();
+	}
+
+	public IJExpression getDataBindingInflationExpression(IJExpression contentViewId, IJExpression container, boolean attachToRoot) {
+		return dataBindingDelegate.getDataBindingInflationExpression(contentViewId, container, attachToRoot);
 	}
 
 }

@@ -21,6 +21,7 @@ import static com.helger.jcodemodel.JExpr.TRUE;
 import static com.helger.jcodemodel.JExpr._new;
 import static com.helger.jcodemodel.JExpr._null;
 import static com.helger.jcodemodel.JExpr._super;
+import static com.helger.jcodemodel.JExpr.cond;
 import static com.helger.jcodemodel.JExpr.invoke;
 import static com.helger.jcodemodel.JExpr.ref;
 import static com.helger.jcodemodel.JMod.PRIVATE;
@@ -38,12 +39,14 @@ import org.androidannotations.holder.ReceiverRegistrationDelegate.IntentFilterDa
 
 import com.helger.jcodemodel.AbstractJClass;
 import com.helger.jcodemodel.IJAssignmentTarget;
+import com.helger.jcodemodel.IJExpression;
 import com.helger.jcodemodel.JBlock;
 import com.helger.jcodemodel.JClassAlreadyExistsException;
 import com.helger.jcodemodel.JDefinedClass;
 import com.helger.jcodemodel.JExpr;
 import com.helger.jcodemodel.JFieldRef;
 import com.helger.jcodemodel.JFieldVar;
+import com.helger.jcodemodel.JInvocation;
 import com.helger.jcodemodel.JMethod;
 import com.helger.jcodemodel.JMod;
 import com.helger.jcodemodel.JVar;
@@ -114,7 +117,6 @@ public class EFragmentHolder extends EComponentWithViewSupportHolder implements 
 		JBlock onCreateBody = onCreateMethod.body();
 
 		JVar previousNotifier = viewNotifierHelper.replacePreviousNotifier(onCreateBody);
-		setFindViewById();
 		onCreateBody.invoke(getInit()).arg(onCreateSavedInstanceState);
 		onCreateBody.invoke(_super(), onCreateMethod).arg(onCreateSavedInstanceState);
 		onCreateAfterSuperBlock = onCreateBody.blockSimple();
@@ -131,20 +133,10 @@ public class EFragmentHolder extends EComponentWithViewSupportHolder implements 
 		viewNotifierHelper.invokeViewChanged(onViewCreatedBody);
 	}
 
-	private void setFindViewById() {
-		findViewByIdMethod = generatedClass.method(PUBLIC, getClasses().VIEW, "findViewById");
-		findViewByIdMethod.annotate(Override.class);
-
-		JVar idParam = findViewByIdMethod.param(getCodeModel().INT, "id");
-
-		JBlock body = findViewByIdMethod.body();
-
+	public IJExpression getFindViewByIdExpression(JVar idParam) {
 		JFieldVar contentView = getContentView();
-
-		body._if(contentView.eq(_null())) //
-			._then()._return(_null());
-
-		body._return(contentView.invoke(findViewByIdMethod).arg(idParam));
+		JInvocation invocation = contentView.invoke("findViewById").arg(idParam);
+		return cond(contentView.eq(_null()), _null(), invocation);
 	}
 
 	private void setFragmentBuilder() throws JClassAlreadyExistsException {
@@ -281,14 +273,14 @@ public class EFragmentHolder extends EComponentWithViewSupportHolder implements 
 		return onDestroyViewMethod;
 	}
 	
-	private JBlock getOnDestroyViewAfterSuperBlock() {
+	public JBlock getOnDestroyViewAfterSuperBlock() {
 		if (onDestroyViewAfterSuperBlock == null) {
 			setContentViewRelatedMethods();
 		}
 		return onDestroyViewAfterSuperBlock;
 	}
 
-	public void clearInjectedView(JFieldRef fieldRef) {
+	public void clearInjectedView(IJAssignmentTarget fieldRef) {
 		JBlock block = getOnDestroyViewAfterSuperBlock();
 		block.assign(fieldRef, _null());
 	}
@@ -541,13 +533,6 @@ public class EFragmentHolder extends EComponentWithViewSupportHolder implements 
 			setOnViewCreated();
 		}
 		return onViewCreatedMethod;
-	}
-	
-	public JMethod getFindViewBy() {
-		if (findViewByIdMethod == null) {
-			setFindViewById();
-		}
-		return findViewByIdMethod;
 	}
 	
 	public JMethod getOnCreate() {
