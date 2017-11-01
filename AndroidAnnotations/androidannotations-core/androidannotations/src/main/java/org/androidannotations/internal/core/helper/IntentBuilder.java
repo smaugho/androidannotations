@@ -46,6 +46,7 @@ import org.androidannotations.helper.ParcelerHelper;
 import org.androidannotations.holder.HasIntentBuilder;
 import org.androidannotations.internal.process.ProcessHolder;
 
+import com.dspot.declex.wrapper.element.VirtualElement;
 import com.helger.jcodemodel.AbstractJClass;
 import com.helger.jcodemodel.IJExpression;
 import com.helger.jcodemodel.JClassAlreadyExistsException;
@@ -123,7 +124,13 @@ public abstract class IntentBuilder {
 	}
 
 	private JMethod addPutExtraMethod(Element element, List<IntentExtra> intentExtras) {
-		String docComment = elementUtils.getDocComment(element);
+		
+		String docComment;
+		if (element instanceof VirtualElement) {
+			docComment = elementUtils.getDocComment(((VirtualElement) element).getElement());			
+		} else {
+			docComment = elementUtils.getDocComment(element);
+		}
 
 		JMethod method = holder.getIntentBuilderClass().method(PUBLIC, holder.getIntentBuilderClass(), element.getSimpleName().toString());
 		method.javadoc().addReturn().append("the IntentBuilder to chain calls");

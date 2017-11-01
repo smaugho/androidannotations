@@ -51,7 +51,7 @@ import com.helger.jcodemodel.JVar;
 
 public class ExtraHandler extends BaseAnnotationHandler<EActivityHolder>implements MethodInjectionHandler<EActivityHolder>, MethodInjectionHandler.AfterAllParametersInjectedHandler<EActivityHolder> {
 
-	private final InjectHelper<EActivityHolder> injectHelper;
+	protected final InjectHelper<EActivityHolder> injectHelper;
 
 	public ExtraHandler(AndroidAnnotationsEnvironment environment) {
 		super(Extra.class, environment);
