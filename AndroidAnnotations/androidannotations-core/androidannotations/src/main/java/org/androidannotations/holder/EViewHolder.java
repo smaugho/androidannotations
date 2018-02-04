@@ -103,7 +103,7 @@ public class EViewHolder extends EComponentWithViewSupportHolder implements HasI
 			JInvocation newInvocation = JExpr._new(narrowedGeneratedClass);
 			for (VariableElement param : userConstructor.getParameters()) {
 				String paramName = param.getSimpleName().toString();
-				AbstractJClass paramType = codeModelHelper.typeMirrorToJClass(param.asType());
+				AbstractJClass paramType = codeModelHelper.elementTypeToJClass(param);
 				copyConstructor.param(paramType, paramName);
 				staticHelper.param(paramType, paramName);
 				superCall.arg(JExpr.ref(paramName));

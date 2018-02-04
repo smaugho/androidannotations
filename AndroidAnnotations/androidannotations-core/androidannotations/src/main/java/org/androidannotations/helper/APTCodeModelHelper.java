@@ -19,6 +19,7 @@ package org.androidannotations.helper;
 import static com.helger.jcodemodel.JExpr._new;
 import static com.helger.jcodemodel.JExpr.lit;
 import static org.androidannotations.helper.ModelConstants.classSuffix;
+import static org.androidannotations.helper.ModelConstants.generationSuffix;
 
 import java.io.StringWriter;
 import java.lang.annotation.Annotation;
@@ -33,6 +34,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.element.Element;
@@ -42,11 +44,7 @@ import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.TypeParameterElement;
 import javax.lang.model.element.VariableElement;
-import javax.lang.model.type.ArrayType;
-import javax.lang.model.type.DeclaredType;
-import javax.lang.model.type.TypeKind;
-import javax.lang.model.type.TypeMirror;
-import javax.lang.model.type.WildcardType;
+import javax.lang.model.type.*;
 import javax.lang.model.util.ElementFilter;
 import javax.lang.model.util.Types;
 
@@ -56,6 +54,7 @@ import org.androidannotations.holder.EBeanHolder;
 import org.androidannotations.holder.GeneratedClassHolder;
 import org.androidannotations.internal.helper.AnnotationParamExtractor;
 
+import com.dspot.declex.wrapper.element.VirtualElement;
 import com.helger.jcodemodel.AbstractJAnnotationValue;
 import com.helger.jcodemodel.AbstractJClass;
 import com.helger.jcodemodel.AbstractJType;
@@ -75,45 +74,135 @@ import com.helger.jcodemodel.JMethod;
 import com.helger.jcodemodel.JMod;
 import com.helger.jcodemodel.JTypeVar;
 import com.helger.jcodemodel.JVar;
+import com.sun.source.tree.ImportTree;
+import com.sun.source.util.TreePath;
+import com.sun.source.util.Trees;
 
 public class APTCodeModelHelper {
 
-	private AndroidAnnotationsEnvironment environment;
+    private final Trees trees;
+    private AndroidAnnotationsEnvironment environment;
 
 	public APTCodeModelHelper(AndroidAnnotationsEnvironment environment) {
+	    this.trees = Trees.instance(environment.getProcessingEnvironment());
 		this.environment = environment;
 	}
 
-	public AbstractJClass typeMirrorToJClass(TypeMirror type) {
-		return typeMirrorToJClass(type, Collections.<String, TypeMirror> emptyMap());
+	public AbstractJClass elementTypeToJClass(Element element) {
+		return elementTypeToJClass(element, false);
 	}
 
-	protected AbstractJClass typeMirrorToJClass(TypeMirror type, Map<String, TypeMirror> substitute) {
-		if (type instanceof DeclaredType) {
-			return typeMirrorToJClass((DeclaredType) type, substitute);
-		} else if (type instanceof WildcardType) {
-			return typeMirrorToJClass((WildcardType) type, substitute);
-		} else if (type instanceof ArrayType) {
-			return typeMirrorToJClass((ArrayType) type, substitute);
-		} else {
-			TypeMirror substituted = substitute.get(type.toString());
-			if (substituted != null && type != substituted) {
-				return typeMirrorToJClass(substituted, substitute);
+	public AbstractJClass elementTypeToJClass(Element element, boolean useFirstTypeArgument) {
+					
+		TypeMirror type = element instanceof ExecutableElement? ((ExecutableElement)element).getReturnType() 
+											        	      : element.asType(); 
+		
+		if (useFirstTypeArgument && type instanceof DeclaredType) {
+			if (((DeclaredType)type).getTypeArguments().size() > 0) {
+				type = ((DeclaredType)type).getTypeArguments().get(0);
 			}
-			return environment.getJClass(type.toString());
+		}
+
+		return typeMirrorToJClass(type, element, Collections.<String, TypeMirror> emptyMap());
+	}
+
+	public String typeStringToClassName(String typeName, Element referenceElement) {
+
+		final ProcessingEnvironment processingEnvironment = environment.getProcessingEnvironment();
+
+		if (referenceElement == null 
+			|| processingEnvironment.getElementUtils().getTypeElement(typeName) != null) {
+			
+			return typeName;
+			
+		}
+
+		//Uses API tree to determine the element type
+    	final TreePath treePath = trees.getPath(
+    			referenceElement instanceof VirtualElement? ((VirtualElement)referenceElement).getElement() : referenceElement
+		);
+
+    	if (treePath == null) return typeName;
+
+        for (ImportTree importTree : treePath.getCompilationUnit().getImports()) {
+
+            String lastElementImport = importTree.getQualifiedIdentifier().toString();
+			String firstElementName = typeName;
+			String currentVariableClass = "";
+			
+			int pointIndex = lastElementImport.lastIndexOf('.');
+			if (pointIndex != -1) {
+				lastElementImport = lastElementImport.substring(pointIndex + 1);
+			}
+			
+			pointIndex = firstElementName.indexOf('.');
+			if (pointIndex != -1) {
+				firstElementName = firstElementName.substring(0, pointIndex);
+				currentVariableClass = typeName.substring(pointIndex);
+			}
+			
+			while (firstElementName.endsWith("[]")) {
+				firstElementName = firstElementName.substring(0, firstElementName.length()-2);
+				if (currentVariableClass.isEmpty()) currentVariableClass = currentVariableClass + "[]";
+			}
+			
+			if (lastElementImport.equals(firstElementName)) {
+				return importTree.getQualifiedIdentifier() + currentVariableClass;
+			}
+    		
+    	}
+    	
+    	return treePath.getCompilationUnit().getPackageName() + "." + typeName;
+		
+	}
+	
+	public AbstractJClass typeMirrorToJClass(TypeMirror type) {
+		return typeMirrorToJClass(type, null, Collections.<String, TypeMirror> emptyMap());
+	}
+
+    public AbstractJClass typeMirrorToJClass(TypeMirror type, Element referenceElement) {
+        return typeMirrorToJClass(type, referenceElement, Collections.<String, TypeMirror> emptyMap());
+    }
+
+	private AbstractJClass typeMirrorToJClass(TypeMirror type, Map<String, TypeMirror> substitute) {
+		return typeMirrorToJClass(type, null, substitute);
+	}
+	
+	private AbstractJClass typeMirrorToJClass(TypeMirror type, Element referenceElement, Map<String, TypeMirror> substitute) {
+	    if (type instanceof ErrorType) {
+            return environment.getJClass(typeStringToClassName(type.toString(), referenceElement));
+        } else if (type instanceof DeclaredType) {
+            return typeMirrorToJClass((DeclaredType) type, referenceElement, substitute);
+		} else if (type instanceof WildcardType) {
+			return typeMirrorToJClass((WildcardType) type, referenceElement, substitute);
+		} else if (type instanceof ArrayType) {
+			return typeMirrorToJClass((ArrayType) type, referenceElement, substitute);
+		} else {
+
+            TypeMirror substituted = substitute.get(type.toString());
+			if (substituted != null && type != substituted) {
+				return typeMirrorToJClass(substituted, referenceElement, substitute);
+			}
+
+			if (type.getKind().isPrimitive() || type.getKind() == TypeKind.VOID) {
+				return environment.getJClass(type.toString());
+			}
+
+            return environment.getJClass(typeStringToClassName(type.toString(), referenceElement));
+										
 		}
 	}
 
-	private AbstractJClass typeMirrorToJClass(DeclaredType declaredType, Map<String, TypeMirror> substitute) {
+	private AbstractJClass typeMirrorToJClass(DeclaredType declaredType, Element referenceElement, Map<String, TypeMirror> substitute) {
 		String declaredTypeName = declaredType.asElement().toString();
 
-		AbstractJClass declaredClass = environment.getJClass(declaredTypeName);
+        AbstractJClass declaredClass = environment.getJClass(declaredTypeName);
 
 		List<? extends TypeMirror> typeArguments = declaredType.getTypeArguments();
 
 		List<AbstractJClass> typeArgumentJClasses = new ArrayList<>();
 		for (TypeMirror typeArgument : typeArguments) {
-			typeArgumentJClasses.add(typeMirrorToJClass(typeArgument, substitute));
+			typeArgumentJClasses.add(typeMirrorToJClass(typeArgument, referenceElement, substitute));
 		}
 		if (typeArgumentJClasses.size() > 0) {
 			declaredClass = declaredClass.narrow(typeArgumentJClasses);
@@ -122,14 +211,14 @@ public class APTCodeModelHelper {
 		return declaredClass;
 	}
 
-	private AbstractJClass typeMirrorToJClass(WildcardType wildcardType, Map<String, TypeMirror> substitute) {
+	private AbstractJClass typeMirrorToJClass(WildcardType wildcardType, Element referenceElement, Map<String, TypeMirror> substitute) {
 		TypeMirror bound = wildcardType.getExtendsBound();
 		if (bound == null) {
 			bound = wildcardType.getSuperBound();
 			if (bound == null) {
 				return environment.getClasses().OBJECT.wildcard();
 			}
-			return typeMirrorToJClass(bound, substitute).wildcardSuper();
+			return typeMirrorToJClass(bound, referenceElement, substitute).wildcardSuper();
 		}
 
 		TypeMirror extendsBound = wildcardType.getExtendsBound();
@@ -137,12 +226,12 @@ public class APTCodeModelHelper {
 		if (extendsBound == null) {
 			return environment.getClasses().OBJECT.wildcard();
 		} else {
-			return typeMirrorToJClass(extendsBound, substitute).wildcard();
+			return typeMirrorToJClass(extendsBound, referenceElement, substitute).wildcard();
 		}
 	}
 
-	private AbstractJClass typeMirrorToJClass(ArrayType arrayType, Map<String, TypeMirror> substitute) {
-		AbstractJClass refClass = typeMirrorToJClass(arrayType.getComponentType(), substitute);
+	private AbstractJClass typeMirrorToJClass(ArrayType arrayType, Element referenceElement, Map<String, TypeMirror> substitute) {
+		AbstractJClass refClass = typeMirrorToJClass(arrayType.getComponentType(), referenceElement, substitute);
 		return refClass.array();
 	}
 
@@ -237,7 +326,7 @@ public class APTCodeModelHelper {
 			methodName = methodName.substring(1);
 		}
 		
-		AbstractJClass returnType = typeMirrorToJClass(executableElement.getReturnType(), actualTypes);
+		AbstractJClass returnType = typeMirrorToJClass(executableElement.getReturnType(), executableElement, actualTypes);
 		int modifier = elementVisibilityModifierToJMod(executableElement);
 		JMethod method = holder.getGeneratedClass().method(modifier, returnType, methodName);
 		
@@ -278,7 +367,7 @@ public class APTCodeModelHelper {
 		}
 
 		for (TypeMirror superThrownType : executableElement.getThrownTypes()) {
-			AbstractJClass thrownType = typeMirrorToJClass(superThrownType, actualTypes);
+			AbstractJClass thrownType = typeMirrorToJClass(superThrownType, executableElement, actualTypes);
 			method._throws(thrownType);
 		}
 
@@ -341,7 +430,7 @@ public class APTCodeModelHelper {
 			if (method.name().equals(methodName) && method.params().size() == parameters.size()) {
 				int i = 0;
 				for (JVar param : method.params()) {
-					String searchedParamType = typeMirrorToJClass(parameters.get(i).asType()).fullName();
+					String searchedParamType = elementTypeToJClass(parameters.get(i)).fullName();
 					if (searchedParamType.contains("<")) {
 						searchedParamType = searchedParamType.substring(0, searchedParamType.indexOf('<'));
 					}
@@ -369,7 +458,7 @@ public class APTCodeModelHelper {
 			parameterName = "$" + parameterName;
 		}
 		
-		AbstractJClass parameterClass = typeMirrorToJClass(parameter.asType(), actualTypes);
+		AbstractJClass parameterClass = typeMirrorToJClass(parameter.asType(), parameter, actualTypes);
 		JVar param = varParam ? method.varParam(mod, parameterClass.elementType(), parameterName) : method.param(mod, parameterClass, parameterName);
 		copyNonAAAnnotations(param, parameter.getAnnotationMirrors());
 	}

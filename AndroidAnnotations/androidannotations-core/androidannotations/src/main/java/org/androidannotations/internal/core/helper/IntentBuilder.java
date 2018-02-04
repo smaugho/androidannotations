@@ -140,9 +140,9 @@ public abstract class IntentBuilder {
 		for (int i = 0; i < paramCount; i++) {
 			IntentExtra intentExtra = intentExtras.get(i);
 			method.javadoc().addParam(intentExtra.parameterName).append("the value for this extra");
-			AbstractJClass parameterClass = codeModelHelper.typeMirrorToJClass(intentExtra.type);
+			AbstractJClass parameterClass = codeModelHelper.elementTypeToJClass(intentExtra.element);
 			JVar extraParameterVar = method.param(parameterClass, intentExtra.parameterName);
-			JInvocation superCall = getSuperPutExtraInvocation(intentExtra.type, extraParameterVar, intentExtra.keyField);
+			JInvocation superCall = getSuperPutExtraInvocation(intentExtra.getType(), extraParameterVar, intentExtra.keyField);
 			if (i + 1 == paramCount) {
 				method.body()._return(superCall);
 			} else {
@@ -186,18 +186,18 @@ public abstract class IntentBuilder {
 	}
 
 	public static class IntentExtra {
-		private final TypeMirror type;
+		private final Element element;
 		private final String parameterName;
 		private final JFieldVar keyField;
 
-		public IntentExtra(TypeMirror type, String parameterName, JFieldVar keyField) {
-			this.type = type;
+		public IntentExtra(Element element, String parameterName, JFieldVar keyField) {
+			this.element = element;
 			this.parameterName = parameterName;
 			this.keyField = keyField;
 		}
 
 		public TypeMirror getType() {
-			return type;
+			return element.asType();
 		}
 
 		public String getParameterName() {
@@ -217,12 +217,12 @@ public abstract class IntentBuilder {
 				return false;
 			}
 			IntentExtra that = (IntentExtra) o;
-			return Objects.equals(type, that.type) && Objects.equals(parameterName, that.parameterName) && Objects.equals(keyField, that.keyField);
+			return Objects.equals(getType(), that.getType()) && Objects.equals(parameterName, that.parameterName) && Objects.equals(keyField, that.keyField);
 		}
 
 		@Override
 		public int hashCode() {
-			return Objects.hash(type, parameterName, keyField);
+			return Objects.hash(getType(), parameterName, keyField);
 		}
 	}
 }

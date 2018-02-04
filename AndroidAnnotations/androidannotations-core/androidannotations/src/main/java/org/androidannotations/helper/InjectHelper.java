@@ -116,7 +116,7 @@ public class InjectHelper<T extends GeneratedClassHolder> {
 			if (param.equals(element) || 
 				(element instanceof VirtualElement && param.equals(((VirtualElement) element).getElement()))) {
 				
-				AbstractJClass type = codeModelHelper.typeMirrorToJClass(param.asType());
+				AbstractJClass type = codeModelHelper.elementTypeToJClass(param);
 				JVar fieldRef = targetBlock.decl(type, param.getSimpleName().toString(), getDefault(param.asType()));
 
 				handler.assignValue(targetBlock, fieldRef, holder, param, param);
@@ -156,7 +156,7 @@ public class InjectHelper<T extends GeneratedClassHolder> {
 		String methodName = executableElement.getSimpleName().toString();
 
 		JBlock block = createBlock(holder, true);
-		AbstractJClass type = codeModelHelper.typeMirrorToJClass(param.asType());
+		AbstractJClass type = codeModelHelper.elementTypeToJClass(param);
 		JVar fieldRef = block.decl(type, param.getSimpleName().toString(), getDefault(param.asType()));
 		handler.assignValue(block, fieldRef, holder, element, param);
 		block.add(JExpr.invoke(methodName).arg(fieldRef));

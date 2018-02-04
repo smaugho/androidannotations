@@ -107,7 +107,7 @@ public class ServiceActionHandler extends BaseAnnotationHandler<EIntentServiceHo
 				String paramName = param.getSimpleName().toString();
 				String extraParamName = paramName + "Extra";
 				JFieldVar paramVar = getStaticExtraField(holder, paramName);
-				AbstractJClass extraParamClass = codeModelHelper.typeMirrorToJClass(param.asType());
+				AbstractJClass extraParamClass = codeModelHelper.elementTypeToJClass(param);
 				
 				TypeMirror actualType = codeModelHelper.getActualTypeOfEnclosingElementOfInjectedElement(holder, param);
 				BundleHelper bundleHelper = new BundleHelper(getEnvironment(), actualType);
@@ -134,7 +134,7 @@ public class ServiceActionHandler extends BaseAnnotationHandler<EIntentServiceHo
 
 		for (VariableElement param : executableElement.getParameters()) {
 			String paramName = param.getSimpleName().toString();
-			AbstractJClass parameterClass = codeModelHelper.typeMirrorToJClass(param.asType());
+			AbstractJClass parameterClass = codeModelHelper.elementTypeToJClass(param);
 
 			JFieldVar paramVar = getStaticExtraField(holder, paramName);
 			JVar methodParam = method.param(parameterClass, paramName);

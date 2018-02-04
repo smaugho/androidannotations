@@ -96,10 +96,10 @@ public class ExtraHandler extends BaseAnnotationHandler<EActivityHolder>implemen
 
 		JFieldVar extraKeyStaticField = getOrCreateStaticExtraField(holder, extraKey, fieldName);
 		if (element.getKind() != ElementKind.PARAMETER) {
-			holder.getIntentBuilder().getPutExtraMethod(element, new IntentBuilder.IntentExtra(param.asType(), fieldName, extraKeyStaticField));
+			holder.getIntentBuilder().getPutExtraMethod(element, new IntentBuilder.IntentExtra(param, fieldName, extraKeyStaticField));
 		}
 
-		AbstractJClass elementClass = codeModelHelper.typeMirrorToJClass(param.asType());
+		AbstractJClass elementClass = codeModelHelper.elementTypeToJClass(param);
 
 		JMethod injectExtrasMethod = holder.getInjectExtrasMethod();
 		JVar extras = holder.getInjectExtras();
@@ -123,7 +123,7 @@ public class ExtraHandler extends BaseAnnotationHandler<EActivityHolder>implemen
 			String fieldName = param.getSimpleName().toString();
 			String extraKey = extractExtraKey(param, fieldName);
 			JFieldVar extraKeyStaticField = getOrCreateStaticExtraField(holder, extraKey, fieldName);
-			params.add(new IntentBuilder.IntentExtra(param.asType(), fieldName, extraKeyStaticField));
+			params.add(new IntentBuilder.IntentExtra(param, fieldName, extraKeyStaticField));
 		}
 		holder.getIntentBuilder().getPutExtraMethod(method, params);
 	}

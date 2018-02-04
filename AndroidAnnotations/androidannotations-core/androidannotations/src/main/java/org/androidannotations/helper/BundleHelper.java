@@ -24,11 +24,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.lang.model.type.ArrayType;
-import javax.lang.model.type.DeclaredType;
-import javax.lang.model.type.TypeKind;
-import javax.lang.model.type.TypeMirror;
-import javax.lang.model.type.TypeVariable;
+import javax.lang.model.element.Element;
+import javax.lang.model.type.*;
 
 import org.androidannotations.AndroidAnnotationsEnvironment;
 
@@ -195,6 +192,9 @@ public class BundleHelper {
 	}
 
 	private boolean isTypeParcelable(TypeMirror typeMirror) {
+
+		if (typeMirror instanceof ErrorType) return false;
+
 		TypeMirror parcelableType = annotationHelper.typeElementFromQualifiedName(CanonicalNameConstants.PARCELABLE).asType();
 		return annotationHelper.isSubtype(typeMirror, parcelableType);
 	}

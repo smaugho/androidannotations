@@ -95,7 +95,7 @@ public class FragmentArgHandler extends BaseAnnotationHandler<EFragmentHolder>
 		}
 
 		TypeMirror actualType = codeModelHelper.getActualTypeOfEnclosingElementOfInjectedElement(holder, param);
-		AbstractJClass elementClass = codeModelHelper.typeMirrorToJClass(actualType);
+		AbstractJClass elementClass = codeModelHelper.typeMirrorToJClass(actualType, param);
 		BundleHelper bundleHelper = new BundleHelper(getEnvironment(), actualType);
 
 		JVar bundle = holder.getInjectBundleArgs();
@@ -164,7 +164,7 @@ public class FragmentArgHandler extends BaseAnnotationHandler<EFragmentHolder>
 
 			JFieldVar argKeyStaticField = getOrCreateStaticArgField(holder, argHelper.argKey, fieldName);
 
-			AbstractJClass paramClass = codeModelHelper.typeMirrorToJClass(actualType);
+			AbstractJClass paramClass = codeModelHelper.typeMirrorToJClass(actualType, argHelper.param);
 			JVar arg = builderMethod.param(paramClass, fieldName);
 			builderMethod.body().add(bundleHelper.getExpressionToSaveFromField(builderArgsField, argKeyStaticField, arg));
 

@@ -21,7 +21,6 @@ import static com.helger.jcodemodel.JExpr.ref;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
-import javax.lang.model.type.TypeMirror;
 
 import org.androidannotations.AndroidAnnotationsEnvironment;
 import org.androidannotations.ElementValidation;
@@ -87,10 +86,9 @@ public class ViewByIdHandler extends BaseAnnotationHandler<EComponentWithViewSup
 
 	@Override
 	public void assignValue(JBlock targetBlock, IJAssignmentTarget fieldRef, EComponentWithViewSupportHolder holder, Element element, Element param) {
-		TypeMirror uiFieldTypeMirror = param.asType();
 
 		JFieldRef idRef = annotationHelper.extractOneAnnotationFieldRef(element, IRClass.Res.ID, true);
-		AbstractJClass viewClass = codeModelHelper.typeMirrorToJClass(uiFieldTypeMirror);
+		AbstractJClass viewClass = codeModelHelper.elementTypeToJClass(param);
 
 		IJAssignmentTarget viewHolderTarget = null;
 		if (element.getKind() == ElementKind.FIELD) {

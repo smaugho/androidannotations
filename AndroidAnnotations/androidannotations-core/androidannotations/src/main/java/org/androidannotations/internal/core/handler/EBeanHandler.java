@@ -15,14 +15,14 @@
  */
 package org.androidannotations.internal.core.handler;
 
-import javax.lang.model.element.Element;
-import javax.lang.model.element.TypeElement;
-
 import org.androidannotations.AndroidAnnotationsEnvironment;
 import org.androidannotations.ElementValidation;
 import org.androidannotations.annotations.EBean;
 import org.androidannotations.handler.BaseGeneratingAnnotationHandler;
 import org.androidannotations.holder.EBeanHolder;
+
+import javax.lang.model.element.Element;
+import javax.lang.model.element.TypeElement;
 
 public class EBeanHandler extends BaseGeneratingAnnotationHandler<EBeanHolder> {
 	
@@ -36,7 +36,7 @@ public class EBeanHandler extends BaseGeneratingAnnotationHandler<EBeanHolder> {
 	}
 
 	@Override
-	public void validate(Element element, ElementValidation valid) {
+	public void validate(Element element, ElementValidation valid) {	
 		super.validate(element, valid);
 
 		validatorHelper.isNotInterface((TypeElement) element, valid);
@@ -47,7 +47,8 @@ public class EBeanHandler extends BaseGeneratingAnnotationHandler<EBeanHolder> {
 	}
 
 	@Override
-	public void process(Element element, EBeanHolder holder) {
+	public void process(Element element, EBeanHolder holder) {	
+		
 		EBean eBeanAnnotation = adiHelper.getAnnotation(element, EBean.class);
 		EBean.Scope eBeanScope = eBeanAnnotation.scope();
 		boolean hasSingletonScope = eBeanScope == EBean.Scope.Singleton;
