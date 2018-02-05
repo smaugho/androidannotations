@@ -49,6 +49,7 @@ import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.ElementFilter;
 
+import org.androidannotations.annotations.export.Exported;
 import org.androidannotations.AndroidAnnotationsEnvironment;
 import org.androidannotations.ElementValidation;
 import org.androidannotations.annotations.EActivity;
@@ -64,8 +65,7 @@ import org.androidannotations.annotations.ViewById;
 import org.androidannotations.internal.core.model.AndroidSystemServices;
 import org.androidannotations.internal.model.AnnotationElements;
 
-import com.dspot.declex.annotation.Export;
-import com.dspot.declex.annotation.External;
+import org.androidannotations.annotations.export.Export;
 
 @SuppressWarnings("checkstyle:methodcount")
 public class ValidatorHelper {
@@ -245,7 +245,7 @@ public class ValidatorHelper {
 		Set<String> supportedAnnotationTypes = environment().getSupportedAnnotationTypes();
 		for (AnnotationMirror annotationMirror : element.getAnnotationMirrors()) {
 			
-			if (annotationMirror.getAnnotationType().toString().equals(External.class.getCanonicalName())) continue;
+			if (annotationMirror.getAnnotationType().toString().equals(Exported.class.getCanonicalName())) continue;
 			if (annotationMirror.getAnnotationType().toString().equals(Export.class.getCanonicalName())) continue;
 			
 			if (supportedAnnotationTypes.contains(annotationMirror.getAnnotationType().toString())) {

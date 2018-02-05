@@ -16,76 +16,35 @@
  */
 package org.androidannotations.helper;
 
-import static com.helger.jcodemodel.JExpr._new;
-import static com.helger.jcodemodel.JExpr.lit;
-import static org.androidannotations.helper.ModelConstants.classSuffix;
-import static org.androidannotations.helper.ModelConstants.generationSuffix;
-
-import java.io.StringWriter;
-import java.lang.annotation.Annotation;
-import java.lang.annotation.Inherited;
-import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import javax.annotation.processing.ProcessingEnvironment;
-import javax.lang.model.element.AnnotationMirror;
-import javax.lang.model.element.AnnotationValue;
-import javax.lang.model.element.Element;
-import javax.lang.model.element.ElementKind;
-import javax.lang.model.element.ExecutableElement;
-import javax.lang.model.element.Modifier;
-import javax.lang.model.element.TypeElement;
-import javax.lang.model.element.TypeParameterElement;
-import javax.lang.model.element.VariableElement;
-import javax.lang.model.type.*;
-import javax.lang.model.util.ElementFilter;
-import javax.lang.model.util.Types;
-
+import com.helger.jcodemodel.*;
 import org.androidannotations.AndroidAnnotationsEnvironment;
 import org.androidannotations.annotations.EBean;
 import org.androidannotations.holder.EBeanHolder;
 import org.androidannotations.holder.GeneratedClassHolder;
 import org.androidannotations.internal.helper.AnnotationParamExtractor;
 
-import com.dspot.declex.wrapper.element.VirtualElement;
-import com.helger.jcodemodel.AbstractJAnnotationValue;
-import com.helger.jcodemodel.AbstractJClass;
-import com.helger.jcodemodel.AbstractJType;
-import com.helger.jcodemodel.IJAnnotatable;
-import com.helger.jcodemodel.IJExpression;
-import com.helger.jcodemodel.IJGenerifiable;
-import com.helger.jcodemodel.IJStatement;
-import com.helger.jcodemodel.JAnnotationArrayMember;
-import com.helger.jcodemodel.JAnnotationUse;
-import com.helger.jcodemodel.JBlock;
-import com.helger.jcodemodel.JCodeModel;
-import com.helger.jcodemodel.JDefinedClass;
-import com.helger.jcodemodel.JExpr;
-import com.helger.jcodemodel.JFormatter;
-import com.helger.jcodemodel.JInvocation;
-import com.helger.jcodemodel.JMethod;
-import com.helger.jcodemodel.JMod;
-import com.helger.jcodemodel.JTypeVar;
-import com.helger.jcodemodel.JVar;
-import com.sun.source.tree.ImportTree;
-import com.sun.source.util.TreePath;
-import com.sun.source.util.Trees;
+import javax.lang.model.element.*;
+import javax.lang.model.type.*;
+import javax.lang.model.util.ElementFilter;
+import javax.lang.model.util.Types;
+import java.io.StringWriter;
+import java.lang.annotation.Annotation;
+import java.lang.annotation.Inherited;
+import java.lang.reflect.Field;
+import java.util.*;
+
+import static com.helger.jcodemodel.JExpr._new;
+import static com.helger.jcodemodel.JExpr.lit;
+import static org.androidannotations.helper.ModelConstants.classSuffix;
 
 public class APTCodeModelHelper {
 
-    private final Trees trees;
     private AndroidAnnotationsEnvironment environment;
+	private CompilationTreeHelper compilationTreeHelper;
 
 	public APTCodeModelHelper(AndroidAnnotationsEnvironment environment) {
-	    this.trees = Trees.instance(environment.getProcessingEnvironment());
 		this.environment = environment;
+		this.compilationTreeHelper = new CompilationTreeHelper(environment);
 	}
 
 	public AbstractJClass elementTypeToJClass(Element element) {
@@ -107,53 +66,7 @@ public class APTCodeModelHelper {
 	}
 
 	public String typeStringToClassName(String typeName, Element referenceElement) {
-
-		final ProcessingEnvironment processingEnvironment = environment.getProcessingEnvironment();
-
-		if (referenceElement == null 
-			|| processingEnvironment.getElementUtils().getTypeElement(typeName) != null) {
-			
-			return typeName;
-			
-		}
-
-		//Uses API tree to determine the element type
-    	final TreePath treePath = trees.getPath(
-    			referenceElement instanceof VirtualElement? ((VirtualElement)referenceElement).getElement() : referenceElement
-		);
-
-    	if (treePath == null) return typeName;
-
-        for (ImportTree importTree : treePath.getCompilationUnit().getImports()) {
-
-            String lastElementImport = importTree.getQualifiedIdentifier().toString();
-			String firstElementName = typeName;
-			String currentVariableClass = "";
-			
-			int pointIndex = lastElementImport.lastIndexOf('.');
-			if (pointIndex != -1) {
-				lastElementImport = lastElementImport.substring(pointIndex + 1);
-			}
-			
-			pointIndex = firstElementName.indexOf('.');
-			if (pointIndex != -1) {
-				firstElementName = firstElementName.substring(0, pointIndex);
-				currentVariableClass = typeName.substring(pointIndex);
-			}
-			
-			while (firstElementName.endsWith("[]")) {
-				firstElementName = firstElementName.substring(0, firstElementName.length()-2);
-				if (currentVariableClass.isEmpty()) currentVariableClass = currentVariableClass + "[]";
-			}
-			
-			if (lastElementImport.equals(firstElementName)) {
-				return importTree.getQualifiedIdentifier() + currentVariableClass;
-			}
-    		
-    	}
-    	
-    	return treePath.getCompilationUnit().getPackageName() + "." + typeName;
-		
+		return compilationTreeHelper.getClassNameFromCompilationUnitImports(typeName, referenceElement);
 	}
 	
 	public AbstractJClass typeMirrorToJClass(TypeMirror type) {

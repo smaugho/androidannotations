@@ -31,7 +31,7 @@ import org.androidannotations.ElementValidation;
 import org.androidannotations.handler.MethodInjectionHandler;
 import org.androidannotations.holder.GeneratedClassHolder;
 
-import com.dspot.declex.wrapper.element.VirtualElement;
+import org.androidannotations.internal.virtual.VirtualElement;
 import com.helger.jcodemodel.AbstractJClass;
 import com.helger.jcodemodel.IJExpression;
 import com.helger.jcodemodel.JBlock;

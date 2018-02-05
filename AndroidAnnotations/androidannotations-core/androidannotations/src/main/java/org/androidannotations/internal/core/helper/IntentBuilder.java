@@ -46,7 +46,7 @@ import org.androidannotations.helper.ParcelerHelper;
 import org.androidannotations.holder.HasIntentBuilder;
 import org.androidannotations.internal.process.ProcessHolder;
 
-import com.dspot.declex.wrapper.element.VirtualElement;
+import org.androidannotations.internal.virtual.VirtualElement;
 import com.helger.jcodemodel.AbstractJClass;
 import com.helger.jcodemodel.IJExpression;
 import com.helger.jcodemodel.JClassAlreadyExistsException;

@@ -30,9 +30,11 @@ import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 
+import com.dspot.declex.annotation.*;
 import org.androidannotations.AndroidAnnotationsEnvironment;
 import org.androidannotations.ElementValidation;
 import org.androidannotations.annotations.Bean;
+import org.androidannotations.annotations.export.Export;
 import org.androidannotations.handler.AnnotationHandler;
 import org.androidannotations.helper.ADIHelper;
 import org.androidannotations.internal.model.AnnotationElements;
@@ -40,17 +42,11 @@ import org.androidannotations.internal.model.AnnotationElementsHolder;
 import org.androidannotations.logger.Logger;
 import org.androidannotations.logger.LoggerFactory;
 
-import com.dspot.declex.annotation.Export;
-import com.dspot.declex.annotation.External;
-import com.dspot.declex.annotation.ExternalPopulate;
-import com.dspot.declex.annotation.ExternalRecollect;
-import com.dspot.declex.annotation.Model;
-import com.dspot.declex.annotation.Populate;
-import com.dspot.declex.annotation.Recollect;
+import org.androidannotations.annotations.export.Exported;
 import com.dspot.declex.helper.FilesCacheHelper;
 import com.dspot.declex.util.TypeUtils;
 import com.dspot.declex.util.TypeUtils.ClassInformation;
-import com.dspot.declex.wrapper.element.VirtualElement;
+import org.androidannotations.internal.virtual.VirtualElement;
 
 public class ModelValidator {
 
@@ -118,19 +114,19 @@ public class ModelValidator {
 					Set<Element> allAnnotatedElements = new HashSet<>();					
 					allAnnotatedElements.add(realAnnotatedElement);
 					
-					final boolean hasExternal = adiHelper.hasAnnotation(realAnnotatedElement, External.class);
-					final boolean hasExternalPopulate = adiHelper.hasAnnotation(realAnnotatedElement, ExternalPopulate.class);
-					final boolean hasExternalRecollect = adiHelper.hasAnnotation(realAnnotatedElement, ExternalRecollect.class);
+					final boolean hasExported = adiHelper.hasAnnotation(realAnnotatedElement, Exported.class);
+					final boolean hasExportPopulate = adiHelper.hasAnnotation(realAnnotatedElement, ExportPopulate.class);
+					final boolean hasExportRecollect = adiHelper.hasAnnotation(realAnnotatedElement, ExportRecollect.class);
 					
-					if (annotationHandler.getTarget().equals(External.class.getCanonicalName()) 
+					if (annotationHandler.getTarget().equals(Exported.class.getCanonicalName())
 						&& realAnnotatedElement.getKind().equals(ElementKind.CLASS)) {
-						//@External is not processed when it is over a CLASS
+						//@Exported is not processed when it is over a CLASS
 						//this is intended to be used only for ADI purposes
 						continue;
 					}
 					
 					//This kind of annotation will be processed only in the parents (containers of Beans and Models)
-					if ((hasExternal || hasExternalPopulate || hasExternalRecollect)
+					if ((hasExported || hasExportPopulate || hasExportRecollect)
 						&& !realAnnotatedElement.getKind().equals(ElementKind.CLASS)) {
 						
 						if (beanAndModelAnnotatedElements == null) {
@@ -178,31 +174,31 @@ public class ModelValidator {
 						}
 						
 						//Use the virtual element
-						if (hasExternal) {
+						if (hasExported) {
 							allAnnotatedElements = virtualElementsMap.get(realAnnotatedElement);
 						};
 						
-						if (hasExternalPopulate) {
+						if (hasExportPopulate) {
 							
 							//@Populate will be applied in this case only to the virtual elements 
 							if (annotationHandler.getTarget().equals(Populate.class.getCanonicalName())) {
 								allAnnotatedElements = virtualElementsMap.get(realAnnotatedElement);
 							}
 							
-							//@ExternalPopulate is applied to the real and virtual elements as well
-							if (annotationHandler.getTarget().equals(ExternalPopulate.class.getCanonicalName())) {
+							//@ExportPopulate is applied to the real and virtual elements as well
+							if (annotationHandler.getTarget().equals(ExportPopulate.class.getCanonicalName())) {
 								allAnnotatedElements.addAll(virtualElementsMap.get(realAnnotatedElement));
 							}
 						}
 						
-						if (hasExternalRecollect) {
+						if (hasExportRecollect) {
 							//@Recollect will be applied in this case only to the virtual elements 
 							if (annotationHandler.getTarget().equals(Recollect.class.getCanonicalName())) {
 								allAnnotatedElements = virtualElementsMap.get(realAnnotatedElement);
 							}
 							
-							//@ExternalRecollect is applied to the real and virtual elements as well
-							if (annotationHandler.getTarget().equals(ExternalRecollect.class.getCanonicalName())) {
+							//@ExportRecollect is applied to the real and virtual elements as well
+							if (annotationHandler.getTarget().equals(ExportRecollect.class.getCanonicalName())) {
 								allAnnotatedElements.addAll(virtualElementsMap.get(realAnnotatedElement));
 							}
 						}

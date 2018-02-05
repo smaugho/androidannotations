@@ -34,8 +34,6 @@ import org.androidannotations.internal.model.AnnotationElements.AnnotatedAndRoot
 import org.androidannotations.logger.Logger;
 import org.androidannotations.logger.LoggerFactory;
 
-import com.dspot.declex.helper.FilesCacheHelper;
-import com.dspot.declex.util.TypeUtils;
 import com.helger.jcodemodel.JCodeModel;
 
 public class ModelProcessor {
