@@ -19,6 +19,7 @@ import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.TypeElement;
 
+import com.dspot.declex.helper.FilesCacheHelper;
 import org.androidannotations.AndroidAnnotationsEnvironment;
 import org.androidannotations.ElementValidation;
 import org.androidannotations.holder.GeneratedClassHolder;
@@ -47,6 +48,13 @@ public abstract class BaseGeneratingAnnotationHandler<T extends GeneratedClassHo
 		
 		if (element.getKind().equals(ElementKind.CLASS)) {
 			actionHelper.validate(element, this);
+		}
+		
+		if (!getEnvironment().getValidatedElements().isAncestor(element)) {
+			FilesCacheHelper.getInstance().addGeneratedClass(
+				TypeUtils.getGeneratedClassName(element, getEnvironment()), 
+				element
+			);
 		}
 
 		if (isInnerClass(element)) {

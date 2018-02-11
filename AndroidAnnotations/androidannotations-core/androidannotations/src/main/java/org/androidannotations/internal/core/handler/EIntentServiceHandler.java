@@ -18,6 +18,7 @@ package org.androidannotations.internal.core.handler;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
 
+import com.dspot.declex.helper.FilesCacheHelper;
 import org.androidannotations.AndroidAnnotationsEnvironment;
 import org.androidannotations.ElementValidation;
 import org.androidannotations.annotations.EIntentService;
@@ -47,6 +48,13 @@ public class EIntentServiceHandler extends BaseAnnotationHandler<EIntentServiceH
 	public void validate(Element element, ElementValidation validation) {
 		
 		actionHelper.validate(element, this);
+		
+		if (!getEnvironment().getValidatedElements().isAncestor(element)) {
+			FilesCacheHelper.getInstance().addGeneratedClass(
+				TypeUtils.getGeneratedClassName(element, getEnvironment()), 
+				element
+			);
+		}
 		
 		validatorHelper.extendsIntentService(element, validation);
 

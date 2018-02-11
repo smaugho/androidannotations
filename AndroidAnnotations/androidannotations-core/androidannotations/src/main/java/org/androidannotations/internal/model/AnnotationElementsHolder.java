@@ -96,6 +96,16 @@ public class AnnotationElementsHolder implements AnnotationElements {
         return subclassesByAncestorElement.get(ancestorElement);
     }
 
+    public Set<AnnotatedAndRootElements> getAllAncestors() {
+        Set<AnnotatedAndRootElements> set = new HashSet<>();
+
+        for (Set<AnnotatedAndRootElements> ancestorAnnotatedElements : ancestorAnnotatedElementsByAnnotation.values()) {
+            set.addAll(ancestorAnnotatedElements);
+        }
+
+        return set;
+    }
+
     public AnnotationElementsHolder validatingHolder() {
 		AnnotationElementsHolder holder = new AnnotationElementsHolder();
 		holder.ancestorAnnotatedElementsByAnnotation.putAll(ancestorAnnotatedElementsByAnnotation);

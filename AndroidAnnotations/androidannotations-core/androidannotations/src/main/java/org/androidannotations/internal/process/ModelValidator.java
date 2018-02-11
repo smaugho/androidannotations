@@ -43,6 +43,7 @@ import org.androidannotations.logger.Logger;
 import org.androidannotations.logger.LoggerFactory;
 
 import org.androidannotations.annotations.export.Exported;
+import com.dspot.declex.helper.FilesCacheHelper;
 import com.dspot.declex.util.TypeUtils;
 import com.dspot.declex.util.TypeUtils.ClassInformation;
 import org.androidannotations.internal.virtual.VirtualElement;
@@ -97,6 +98,8 @@ public class ModelValidator {
 				LOGGER.debug("Validating with {}: {}", validatorSimpleName, annotatedElements);
 			}
 			
+			final FilesCacheHelper filesCacheHelper = FilesCacheHelper.getInstance();
+			
 			for (Element realAnnotatedElement : annotatedElements) {
 				try {
 					
@@ -128,9 +131,12 @@ public class ModelValidator {
 						
 						if (beanAndModelAnnotatedElements == null) {
 							beanAndModelAnnotatedElements = new HashSet<>();
-
-                            beanAndModelAnnotatedElements.addAll(extractedModel.getRootAnnotatedElements(Bean.class.getCanonicalName()));
-                            beanAndModelAnnotatedElements.addAll(extractedModel.getRootAnnotatedElements(Model.class.getCanonicalName()));
+							for (Element element : extractedModel.getRootAnnotatedElements(Bean.class.getCanonicalName())) {
+								beanAndModelAnnotatedElements.add(element);
+							}
+							for (Element element : extractedModel.getRootAnnotatedElements(Model.class.getCanonicalName())) {
+								beanAndModelAnnotatedElements.add(element);
+							}
 							
 							for (Element element : beanAndModelAnnotatedElements) {
 								final Element rootElement = TypeUtils.getRootElement(element);
@@ -152,16 +158,15 @@ public class ModelValidator {
 							
 							final Set<Element> virtualElements = new HashSet<>();
 							virtualElementsMap.put(realAnnotatedElement, virtualElements);
-
-							//TODO check if it is ancestor, and create virtual elements for all the not ancestors
-							if (validatingHolder.isAncestor(rootElement)) {
-
-								Set<AnnotationElements.AnnotatedAndRootElements> subClassesElements = validatingHolder.getAncestorSubClassesElements(rootElement);
-								for (AnnotationElements.AnnotatedAndRootElements subClass : subClassesElements) {
-									if (validatingHolder.isAncestor(subClass.rootTypeElement)) continue;
-									createVirtualElements(subClass.rootTypeElement.asType().toString(), realAnnotatedElement, virtualElements);
-								}
-
+							
+							if (filesCacheHelper.isAncestor(rootElementClass)) {
+								
+								Set<String> subClasses = filesCacheHelper.getAncestorSubClasses(rootElementClass);
+								for (String subClass : subClasses) {
+									if (filesCacheHelper.isAncestor(subClass)) continue;
+									createVirtualElements(subClass, realAnnotatedElement, virtualElements);
+								}					
+								
 							} else {
 								createVirtualElements(rootElementClass, realAnnotatedElement, virtualElements);
 							}
@@ -171,7 +176,7 @@ public class ModelValidator {
 						//Use the virtual element
 						if (hasExported) {
 							allAnnotatedElements = virtualElementsMap.get(realAnnotatedElement);
-						}
+						};
 						
 						if (hasExportPopulate) {
 							
@@ -184,7 +189,6 @@ public class ModelValidator {
 							if (annotationHandler.getTarget().equals(ExportPopulate.class.getCanonicalName())) {
 								allAnnotatedElements.addAll(virtualElementsMap.get(realAnnotatedElement));
 							}
-							
 						}
 						
 						if (hasExportRecollect) {
