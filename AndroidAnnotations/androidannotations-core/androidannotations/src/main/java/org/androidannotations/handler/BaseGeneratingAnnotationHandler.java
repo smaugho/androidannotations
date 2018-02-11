@@ -48,13 +48,6 @@ public abstract class BaseGeneratingAnnotationHandler<T extends GeneratedClassHo
 		if (element.getKind().equals(ElementKind.CLASS)) {
 			actionHelper.validate(element, this);
 		}
-		
-		if (!filesCacheHelper.isAncestor(element.asType().toString())) {
-			filesCacheHelper.addGeneratedClass(
-				TypeUtils.getGeneratedClassName(element, getEnvironment()), 
-				element
-			);
-		}
 
 		if (isInnerClass(element)) {
 

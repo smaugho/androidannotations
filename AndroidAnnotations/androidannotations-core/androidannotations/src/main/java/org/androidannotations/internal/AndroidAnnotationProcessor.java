@@ -257,6 +257,7 @@ public class AndroidAnnotationProcessor extends AbstractProcessor {
 			
 			//Get the dependencies of the annotated elements for this annotation handler
 			Set<? extends Element> annotatedElements = extractedModel.getRootAnnotatedElements(annotationName);
+			System.out.println(annotationName + ":" + annotatedElements);
 			for (Element annotatedElement : annotatedElements) {
 				Map<Element, Object> dependencies = annotationHandler.getDependencies(annotatedElement);
 				checkADIDependencies(dependencies, annotationHandlersFromTarget, annotatedElementsMap, null, extractedModel);
@@ -266,6 +267,7 @@ public class AndroidAnnotationProcessor extends AbstractProcessor {
 		//Update extractedModel
 		for (java.util.Map.Entry<String, Set<? extends Element>> entry : annotatedElementsMap.entrySet()) {
 			extractedModel.putRootAnnotatedElements(entry.getKey(), entry.getValue());
+			System.out.println(entry.getKey() + ":" + entry.getValue());
 		}
 		
 		timeStats.stop("Run ADI");		
@@ -275,18 +277,18 @@ public class AndroidAnnotationProcessor extends AbstractProcessor {
 	private void checkADIDependencies(final Map<Element, Object> dependencies, 
 			                          final Map<String, AnnotationHandler<?>> annotationHandlersFromTarget,
 			                          final Map<String, Set<? extends Element>> annotatedElementsMap,
-			                          List<Entry<Element, Object>> analizedDependencies,
+			                          List<Entry<Element, Object>> analyzedDependencies,
 			                          final AnnotationElementsHolder extractedModel) {
 				
-		if (analizedDependencies == null) {
-			analizedDependencies = new LinkedList<>();
+		if (analyzedDependencies == null) {
+			analyzedDependencies = new LinkedList<>();
 		}
 		
 		for (Entry<Element, Object> dependency : dependencies.entrySet()) {
 
 			//Avoid circular dependencies
-			if (analizedDependencies.contains(dependency)) continue;
-			analizedDependencies.add(dependency);
+			if (analyzedDependencies.contains(dependency)) continue;
+			analyzedDependencies.add(dependency);
 			
 			final Element dependentElement = dependency.getKey();
 			final Class<? extends Annotation> dependencyAnnotation = (Class<? extends Annotation>)
@@ -309,8 +311,10 @@ public class AndroidAnnotationProcessor extends AbstractProcessor {
 			//Check for more dependencies if any, DFS search
 			AnnotationHandler<?> annotationHandlerForDependency = annotationHandlersFromTarget.get(dependencyAnnotation.getCanonicalName());			
 			Map<Element, Object> subDependencies = annotationHandlerForDependency.getDependencies(dependentElement);
-			checkADIDependencies(subDependencies, annotationHandlersFromTarget, annotatedElementsMap, analizedDependencies, extractedModel);
+			checkADIDependencies(subDependencies, annotationHandlersFromTarget, annotatedElementsMap, analyzedDependencies, extractedModel);
+
 		}
+
 	}
 
 	protected AnnotationElements validateAnnotations(AnnotationElements extractedModel, AnnotationElementsHolder validatingHolder) {

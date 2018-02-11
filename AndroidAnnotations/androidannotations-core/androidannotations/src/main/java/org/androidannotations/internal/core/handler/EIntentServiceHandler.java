@@ -48,13 +48,6 @@ public class EIntentServiceHandler extends BaseAnnotationHandler<EIntentServiceH
 		
 		actionHelper.validate(element, this);
 		
-		if (!filesCacheHelper.isAncestor(element.asType().toString())) {
-			filesCacheHelper.addGeneratedClass(
-				TypeUtils.getGeneratedClassName(element, getEnvironment()), 
-				element
-			);
-		}
-		
 		validatorHelper.extendsIntentService(element, validation);
 
 		validatorHelper.hasNotMultipleAnnotatedMethodWithSameName(element, validation, ServiceAction.class);

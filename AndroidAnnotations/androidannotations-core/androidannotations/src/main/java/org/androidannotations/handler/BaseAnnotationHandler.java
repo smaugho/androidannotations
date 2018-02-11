@@ -36,7 +36,6 @@ import org.androidannotations.holder.GeneratedClassHolder;
 import org.androidannotations.internal.process.ProcessHolder;
 import org.androidannotations.plugin.AndroidAnnotationsPlugin;
 
-import com.dspot.declex.helper.FilesCacheHelper;
 import com.helger.jcodemodel.AbstractJClass;
 import com.helger.jcodemodel.JCodeModel;
 
@@ -47,7 +46,6 @@ public abstract class BaseAnnotationHandler<T extends GeneratedClassHolder> impl
 	protected IdValidatorHelper validatorHelper;
 	protected APTCodeModelHelper codeModelHelper;
 	protected ADIHelper adiHelper;
-	protected FilesCacheHelper filesCacheHelper;
 	private AndroidAnnotationsEnvironment environment;
 	
 	private AndroidAnnotationsPlugin androidAnnotationsPlugin;
@@ -63,7 +61,6 @@ public abstract class BaseAnnotationHandler<T extends GeneratedClassHolder> impl
 		validatorHelper = new IdValidatorHelper(annotationHelper);
 		codeModelHelper = new APTCodeModelHelper(environment);
 		adiHelper = new ADIHelper(environment);
-		filesCacheHelper = FilesCacheHelper.getInstance();
 	}
 	
 	@Override

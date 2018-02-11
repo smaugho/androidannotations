@@ -43,4 +43,8 @@ public interface AnnotationElements {
 
 	Set<AnnotatedAndRootElements> getAncestorAnnotatedElements(String annotationName);
 
+	boolean isAncestor(Element element);
+
+    Set<AnnotatedAndRootElements> getAncestorSubClassesElements(Element ancestorElement);
+
 }
