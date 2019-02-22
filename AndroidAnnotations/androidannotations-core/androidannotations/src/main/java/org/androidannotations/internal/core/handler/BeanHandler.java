@@ -40,6 +40,8 @@ import com.helger.jcodemodel.IJStatement;
 import com.helger.jcodemodel.JBlock;
 import com.helger.jcodemodel.JConditional;
 import com.helger.jcodemodel.JInvocation;
+import com.helger.jcodemodel.JMethod;
+import com.helger.jcodemodel.JVar;
 
 public class BeanHandler extends BaseAnnotationHandler<EComponentHolder> implements MethodInjectionHandler<EComponentHolder> {
 
@@ -80,18 +82,28 @@ public class BeanHandler extends BaseAnnotationHandler<EComponentHolder> impleme
 			typeMirror = getProcessingEnvironment().getTypeUtils().erasure(typeMirror);
 		}
 		String typeQualifiedName = typeMirror.toString();
-		AbstractJClass injectedClass = getJClass(annotationHelper.generatedClassQualifiedNameFromQualifiedName(typeQualifiedName));
-		JInvocation beanInstance = injectedClass.staticInvoke(EBeanHolder.GET_INSTANCE_METHOD_NAME).arg(holder.getContextRef());
 
-		TypeElement declaredEBean = getProcessingEnvironment().getElementUtils().getTypeElement(typeQualifiedName);
-		if (declaredEBean != null) {
-			EBean annotation = declaredEBean.getAnnotation(EBean.class);
-			if (annotation.scope() == EBean.Scope.Default) {
-				beanInstance.arg(holder.getRootFragmentRef());
+		JMethod dependencyProviderMethod = holder.createProviderMethod(getJClass(typeQualifiedName));
+		if (dependencyProviderMethod != null) {
+			JVar contextParam = dependencyProviderMethod.param(getClasses().CONTEXT, "context");
+			JVar rootFragmentParam = dependencyProviderMethod.param(getClasses().OBJECT, "rootFragment");
+
+			AbstractJClass injectedClass = getJClass(annotationHelper.generatedClassQualifiedNameFromQualifiedName(typeQualifiedName));
+			JInvocation beanInstance = injectedClass.staticInvoke(EBeanHolder.GET_INSTANCE_METHOD_NAME).arg(contextParam);
+
+			TypeElement declaredEBean = getProcessingEnvironment().getElementUtils().getTypeElement(typeQualifiedName);
+			if (declaredEBean != null) {
+				EBean annotation = declaredEBean.getAnnotation(EBean.class);
+				if (annotation.scope() == EBean.Scope.Default) {
+					beanInstance.arg(rootFragmentParam);
+				}
 			}
+
+			dependencyProviderMethod.body()._return(beanInstance);
 		}
 
-		IJStatement assignment = fieldRef.assign(beanInstance);
+		JInvocation providerInvoke = holder.getDependencyProvider().invoke(holder.getProviderMethod(getJClass(typeQualifiedName))).arg(holder.getContextRef()).arg(holder.getRootFragmentRef());
+		IJStatement assignment = fieldRef.assign(providerInvoke);
 		if (param.getKind() == ElementKind.FIELD) {
 			boolean hasNonConfigurationInstanceAnnotation = element.getAnnotation(NonConfigurationInstance.class) != null;
 			if (hasNonConfigurationInstanceAnnotation) {

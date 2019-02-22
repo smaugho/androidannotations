@@ -25,8 +25,10 @@ import javax.lang.model.element.TypeElement;
 
 import org.androidannotations.AndroidAnnotationsEnvironment;
 
+import com.helger.jcodemodel.AbstractJClass;
 import com.helger.jcodemodel.IJExpression;
 import com.helger.jcodemodel.JBlock;
+import com.helger.jcodemodel.JDefinedClass;
 import com.helger.jcodemodel.JFieldRef;
 import com.helger.jcodemodel.JFieldVar;
 import com.helger.jcodemodel.JMethod;
@@ -44,8 +46,12 @@ public abstract class EComponentHolder extends BaseGeneratedClassHolder {
 	private JVar resourcesRef;
 	private JFieldVar powerManagerRef;
 
+	private DependencyProviderDelegate dependencyProviderDelegate;
+	private JVar dependencyProviderRef;
+
 	public EComponentHolder(AndroidAnnotationsEnvironment environment, TypeElement annotatedElement) throws Exception {
 		super(environment, annotatedElement);
+		this.dependencyProviderDelegate = new DependencyProviderDelegate(this);
 	}
 
 	public IJExpression getContextRef() {
@@ -120,6 +126,31 @@ public abstract class EComponentHolder extends BaseGeneratedClassHolder {
 
 	private void setResourcesRef() {
 		resourcesRef = getInitBodyBeforeInjectionBlock().decl(getClasses().RESOURCES, "resources" + generationSuffix(), getContextRef().invoke("getResources"));
+	}
+
+	public JMethod createProviderMethod(AbstractJClass clazz) {
+		return dependencyProviderDelegate.createProviderMethod(clazz);
+	}
+
+	public JMethod getProviderMethod(AbstractJClass clazz) {
+		return dependencyProviderDelegate.getProviderMethod(clazz);
+	}
+
+	public JDefinedClass getDependenciesProviderClass() {
+		return dependencyProviderDelegate.getDependenciesProviderClass();
+	}
+
+	public JVar getDependencyProvider() {
+		if (dependencyProviderRef == null) {
+			setDependencyProvider();
+		}
+		return dependencyProviderRef;
+	}
+
+	private void setDependencyProvider() {
+		AbstractJClass dependencyProviderClass = dependencyProviderDelegate.getDependenciesProviderClass();
+		dependencyProviderRef = getInitBodyBeforeInjectionBlock().decl(dependencyProviderClass, "dependencyProvider",
+				dependencyProviderClass.staticInvoke(dependencyProviderDelegate.getInstanceMethod()));
 	}
 
 	public JFieldVar getPowerManagerRef() {
