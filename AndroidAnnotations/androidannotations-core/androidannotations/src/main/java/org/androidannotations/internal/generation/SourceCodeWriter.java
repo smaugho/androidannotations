@@ -37,12 +37,13 @@ import com.helger.jcodemodel.writer.AbstractCodeWriter;
 
 public class SourceCodeWriter extends AbstractCodeWriter {
 
-	private static final VoidOutputStream VOID_OUTPUT_STREAM = new VoidOutputStream();
 	private static final Logger LOGGER = LoggerFactory.getLogger(SourceCodeWriter.class);
-	private final Filer filer;
-	private OriginatingElements originatingElements;
 
-	private static class VoidOutputStream extends OutputStream {
+	protected static final VoidOutputStream VOID_OUTPUT_STREAM = new VoidOutputStream();
+	protected final Filer filer;
+	protected OriginatingElements originatingElements;
+
+	public static class VoidOutputStream extends OutputStream {
 		@Override
 		public void write(int arg0) {
 			// Do nothing
@@ -67,7 +68,7 @@ public class SourceCodeWriter extends AbstractCodeWriter {
 			JavaFileObject sourceFile;
 
 			if (classOriginatingElements.length == 0) {
-				LOGGER.info("Generating class with no originating element: {}", qualifiedClassName);
+				LOGGER.debug("Generating class with no originating element: {}", qualifiedClassName);
 			}
 
 			sourceFile = filer.createSourceFile(qualifiedClassName, classOriginatingElements);
@@ -87,7 +88,7 @@ public class SourceCodeWriter extends AbstractCodeWriter {
 		}
 	}
 
-	private String toQualifiedClassName(JPackage pkg, String fileName) {
+	protected String toQualifiedClassName(JPackage pkg, String fileName) {
 		int suffixPosition = fileName.lastIndexOf('.');
 		String className = fileName.substring(0, suffixPosition);
 

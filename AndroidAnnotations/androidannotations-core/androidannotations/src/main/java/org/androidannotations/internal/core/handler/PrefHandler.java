@@ -62,7 +62,7 @@ public class PrefHandler extends CoreBaseAnnotationHandler<EComponentHolder> imp
 	}
 
 	@Override
-	public JBlock getInvocationBlock(EComponentHolder holder) {
+	public JBlock getInvocationBlock(Element element, EComponentHolder holder) {
 		return holder.getInitBodyInjectionBlock();
 	}
 

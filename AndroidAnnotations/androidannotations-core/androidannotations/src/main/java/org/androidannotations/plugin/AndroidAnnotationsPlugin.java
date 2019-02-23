@@ -31,6 +31,8 @@ import org.androidannotations.logger.LoggerFactory;
 
 public abstract class AndroidAnnotationsPlugin {
 
+	private final static String ANDROIDANNOTATIONS_ISSUES_URL = "https://github.com/androidannotations/androidannotations/issues";
+
 	private final Logger logger = LoggerFactory.getLogger(getClass());
 
 	private String version;
@@ -39,6 +41,10 @@ public abstract class AndroidAnnotationsPlugin {
 	public abstract String getName();
 
 	public abstract List<AnnotationHandler<?>> getHandlers(AndroidAnnotationsEnvironment androidAnnotationEnv);
+
+	public String getIssuesUrl() {
+		return ANDROIDANNOTATIONS_ISSUES_URL;
+	}
 
 	@Override
 	public String toString() {

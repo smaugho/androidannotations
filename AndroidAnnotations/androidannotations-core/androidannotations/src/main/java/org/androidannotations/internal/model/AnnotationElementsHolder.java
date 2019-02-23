@@ -30,17 +30,29 @@ public class AnnotationElementsHolder implements AnnotationElements {
 	private final Map<String, Set<? extends Element>> rootAnnotatedElementsByAnnotation = new HashMap<>();
 	private final Map<String, Set<AnnotatedAndRootElements>> ancestorAnnotatedElementsByAnnotation = new HashMap<>();
 
+	private final Map<Element, Set<AnnotatedAndRootElements>> subclassesByAncestorElement = new HashMap<>();
+
 	public void putRootAnnotatedElements(String annotationName, Set<? extends Element> annotatedElements) {
 		rootAnnotatedElementsByAnnotation.put(annotationName, annotatedElements);
 	}
 
 	public void putAncestorAnnotatedElement(String annotationName, Element annotatedElement, TypeElement rootTypeElement) {
+
+		AnnotatedAndRootElements annotatedAndRootElements = new AnnotatedAndRootElements(annotatedElement, rootTypeElement);
+
 		Set<AnnotatedAndRootElements> set = ancestorAnnotatedElementsByAnnotation.get(annotationName);
 		if (set == null) {
 			set = new LinkedHashSet<>();
 			ancestorAnnotatedElementsByAnnotation.put(annotationName, set);
 		}
-		set.add(new AnnotatedAndRootElements(annotatedElement, rootTypeElement));
+		set.add(annotatedAndRootElements);
+
+		Set<AnnotatedAndRootElements> subClasses = subclassesByAncestorElement.get(annotatedElement);
+		if (subClasses == null) {
+			subClasses = new HashSet<>();
+			subclassesByAncestorElement.put(annotatedElement, subClasses);
+		}
+		subClasses.add(annotatedAndRootElements);
 	}
 
 	@Override
@@ -74,9 +86,20 @@ public class AnnotationElementsHolder implements AnnotationElements {
 		return allElements;
 	}
 
+	@Override
+	public boolean isAncestor(Element element) {
+		return subclassesByAncestorElement.containsKey(element);
+	}
+
+	@Override
+	public Set<AnnotatedAndRootElements> getAncestorSubClassesElements(Element ancestorElement) {
+		return subclassesByAncestorElement.get(ancestorElement);
+	}
+
 	public AnnotationElementsHolder validatingHolder() {
 		AnnotationElementsHolder holder = new AnnotationElementsHolder();
 		holder.ancestorAnnotatedElementsByAnnotation.putAll(ancestorAnnotatedElementsByAnnotation);
+		holder.subclassesByAncestorElement.putAll(subclassesByAncestorElement);
 		return holder;
 	}
 

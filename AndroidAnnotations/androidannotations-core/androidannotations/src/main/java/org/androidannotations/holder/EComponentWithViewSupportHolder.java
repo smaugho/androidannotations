@@ -132,6 +132,14 @@ public abstract class EComponentWithViewSupportHolder extends EComponentHolder i
 		}
 		return onViewChangedHasViewsParam;
 	}
+	
+	public void setOnViewChangedHasViewsParam(JVar onViewChangedHasViewsParam) {
+		this.onViewChangedHasViewsParam = onViewChangedHasViewsParam;
+	}
+	
+	public ViewNotifierHelper getViewNotifierHelper() {
+		return viewNotifierHelper;
+	}
 
 	protected void setOnViewChanged() {
 		getGeneratedClass()._implements(OnViewChangedListener.class);
@@ -146,9 +154,22 @@ public abstract class EComponentWithViewSupportHolder extends EComponentHolder i
 		AbstractJClass notifierClass = getJClass(OnViewChangedNotifier.class);
 		getInitBodyInjectionBlock().add(notifierClass.staticInvoke("registerOnViewChangedListener").arg(_this()));
 	}
+	
+	public boolean hasOnViewChanged() {
+		return onViewChangedMethod != null;
+	}
 
 	public JInvocation findViewById(JFieldRef idRef) {
-		JInvocation findViewById = invoke(getOnViewChangedHasViewsParam(), "internalFindViewById");
+		
+		JVar hasView = getOnViewChangedHasViewsParam();
+		
+		JInvocation findViewById;
+		if (hasView.name().equals("hasViews")) {
+			findViewById = invoke(hasView, "internalFindViewById");
+		} else {
+			findViewById = invoke(hasView, "findViewById");
+		}
+		
 		findViewById.arg(idRef);
 		return findViewById;
 	}
@@ -170,9 +191,12 @@ public abstract class EComponentWithViewSupportHolder extends EComponentHolder i
 	protected FoundViewHolder createFoundViewAndIfNotNullBlock(JFieldRef idRef, AbstractJClass viewClass, IJAssignmentTarget fieldRef) {
 		IJExpression findViewExpression = findViewById(idRef);
 		JBlock block = getOnViewChangedBodyBeforeInjectionBlock();
-
+		JVar hasView = getOnViewChangedHasViewsParam();
+		
 		if (viewClass == null) {
 			viewClass = getClasses().VIEW;
+		} else if (viewClass != getClasses().VIEW && !hasView.name().equals("hasViews")) {
+			findViewExpression = cast(viewClass, findViewExpression);
 		}
 
 		IJAssignmentTarget foundView = fieldRef;

@@ -62,7 +62,7 @@ public class ItemClickHandler extends AbstractViewListenerHandler {
 	}
 
 	@Override
-	protected void processParameters(EComponentWithViewSupportHolder holder, JMethod listenerMethod, JInvocation call, List<? extends VariableElement> parameters) {
+	public void processParameters(EComponentWithViewSupportHolder holder, JMethod listenerMethod, JInvocation call, List<? extends VariableElement> parameters) {
 		boolean hasItemParameter = parameters.size() == 1;
 
 		AbstractJClass narrowAdapterViewClass = getClasses().ADAPTER_VIEW.narrow(getCodeModel().wildcard());
@@ -78,7 +78,7 @@ public class ItemClickHandler extends AbstractViewListenerHandler {
 			if (parameterType.getKind() == TypeKind.INT) {
 				call.arg(onItemClickPositionParam);
 			} else {
-				AbstractJClass parameterClass = codeModelHelper.typeMirrorToJClass(parameterType);
+				AbstractJClass parameterClass = codeModelHelper.elementTypeToJClass(parameter);
 				call.arg(cast(parameterClass, invoke(onItemClickParentParam, "getAdapter").invoke("getItem").arg(onItemClickPositionParam)));
 
 				if (parameterClass.isParameterized()) {
@@ -89,17 +89,17 @@ public class ItemClickHandler extends AbstractViewListenerHandler {
 	}
 
 	@Override
-	protected JMethod createListenerMethod(JDefinedClass listenerAnonymousClass) {
+	public JMethod createListenerMethod(JDefinedClass listenerAnonymousClass) {
 		return listenerAnonymousClass.method(JMod.PUBLIC, getCodeModel().VOID, "onItemClick");
 	}
 
 	@Override
-	protected String getSetterName() {
+	public String getSetterName() {
 		return "setOnItemClickListener";
 	}
 
 	@Override
-	protected AbstractJClass getListenerClass(EComponentWithViewSupportHolder holder) {
+	public AbstractJClass getListenerClass(EComponentWithViewSupportHolder holder) {
 		return getClasses().ON_ITEM_CLICK_LISTENER;
 	}
 

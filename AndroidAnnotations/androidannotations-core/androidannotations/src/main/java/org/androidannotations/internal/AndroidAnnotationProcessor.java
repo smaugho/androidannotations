@@ -18,10 +18,16 @@ package org.androidannotations.internal;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.ServiceLoader;
 import java.util.Set;
 
@@ -32,6 +38,8 @@ import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
 
+import org.androidannotations.AndroidAnnotationsEnvironment;
+import org.androidannotations.handler.AnnotationHandler;
 import org.androidannotations.helper.AndroidManifest;
 import org.androidannotations.helper.ModelConstants;
 import org.androidannotations.internal.core.CorePlugin;
@@ -63,16 +71,35 @@ public class AndroidAnnotationProcessor extends AbstractProcessor {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(AndroidAnnotationProcessor.class);
 
-	private String coreVersion;
+	protected String coreVersion;
 
-	private final TimeStats timeStats = new TimeStats();
 	private final ErrorHelper errorHelper = new ErrorHelper();
-	private InternalAndroidAnnotationsEnvironment androidAnnotationsEnv;
+	protected final TimeStats timeStats = new TimeStats();
+	protected InternalAndroidAnnotationsEnvironment androidAnnotationsEnv;
+
+	protected AndroidAnnotationsPlugin getCorePlugin() {
+		return new CorePlugin();
+	}
+
+	protected String getFramework() {
+		return "AndroidAnnotations";
+	}
+
+	protected AndroidAnnotationsEnvironment getAndroidAnnotationEnvironment() {
+		if (androidAnnotationsEnv == null) {
+			androidAnnotationsEnv = new InternalAndroidAnnotationsEnvironment(processingEnv);
+		}
+		return androidAnnotationsEnv;
+	}
+
+	protected void helpersInitialization() {
+	}
 
 	@Override
 	public synchronized void init(ProcessingEnvironment processingEnv) {
 		super.init(processingEnv);
-		androidAnnotationsEnv = new InternalAndroidAnnotationsEnvironment(processingEnv);
+
+		getAndroidAnnotationEnvironment();
 
 		ModelConstants.init(androidAnnotationsEnv);
 
@@ -80,12 +107,14 @@ public class AndroidAnnotationProcessor extends AbstractProcessor {
 		LoggerContext loggerContext = LoggerContext.getInstance();
 		loggerContext.setEnvironment(androidAnnotationsEnv);
 
+		helpersInitialization();
+
 		try {
-			AndroidAnnotationsPlugin corePlugin = new CorePlugin();
+			AndroidAnnotationsPlugin corePlugin = getCorePlugin();
 			corePlugin.loadVersion();
 			coreVersion = corePlugin.getVersion();
 
-			LOGGER.info("Initialize AndroidAnnotations {} with options {}", coreVersion, processingEnv.getOptions());
+			LOGGER.info("Initialize {} {} with options {}", corePlugin.getName(), coreVersion, processingEnv.getOptions());
 
 			List<AndroidAnnotationsPlugin> plugins = loadPlugins();
 			plugins.add(0, corePlugin);
@@ -154,8 +183,10 @@ public class AndroidAnnotationProcessor extends AbstractProcessor {
 		}
 
 		AnnotationElementsHolder extractedModel = extractAnnotations(annotations, roundEnv);
-		androidAnnotationsEnv.setExtractedElements(extractedModel);
 
+		runAnnotationDependencyInjection(extractedModel);
+
+		androidAnnotationsEnv.setExtractedElements(extractedModel);
 		AnnotationElementsHolder validatingHolder = extractedModel.validatingHolder();
 		androidAnnotationsEnv.setValidatedElements(validatingHolder);
 
@@ -178,11 +209,11 @@ public class AndroidAnnotationProcessor extends AbstractProcessor {
 		generateSources(processResult);
 	}
 
-	private boolean nothingToDo(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
+	protected boolean nothingToDo(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
 		return roundEnv.processingOver() || annotations.size() == 0;
 	}
 
-	private AnnotationElementsHolder extractAnnotations(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
+	protected AnnotationElementsHolder extractAnnotations(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
 		timeStats.start("Extract Annotations");
 		ModelExtractor modelExtractor = new ModelExtractor();
 		AnnotationElementsHolder extractedModel = modelExtractor.extract(annotations, getSupportedAnnotationTypes(), roundEnv);
@@ -210,7 +241,81 @@ public class AndroidAnnotationProcessor extends AbstractProcessor {
 		}
 	}
 
-	private AnnotationElements validateAnnotations(AnnotationElements extractedModel, AnnotationElementsHolder validatingHolder) {
+	protected void runAnnotationDependencyInjection(AnnotationElementsHolder extractedModel) {
+
+		timeStats.start("Run ADI");
+
+		final Map<String, Set<? extends Element>> annotatedElementsMap = new HashMap<>();
+		final Map<String, AnnotationHandler<?>> annotationHandlersFromTarget = new HashMap<>();
+
+		// Right now only one AnnotationHandler for target is supported here
+		for (AnnotationHandler<?> annotationHandler : androidAnnotationsEnv.getHandlers()) {
+			annotationHandlersFromTarget.put(annotationHandler.getTarget(), annotationHandler);
+		}
+
+		for (AnnotationHandler<?> annotationHandler : androidAnnotationsEnv.getHandlers()) {
+
+			final String annotationName = annotationHandler.getTarget();
+
+			// Get the dependencies of the annotated elements for this annotation handler
+			Set<? extends Element> annotatedElements = extractedModel.getRootAnnotatedElements(annotationName);
+			for (Element annotatedElement : annotatedElements) {
+				Map<Element, Object> dependencies = annotationHandler.getDependencies(annotatedElement);
+				checkADIDependencies(dependencies, annotationHandlersFromTarget, annotatedElementsMap, null, extractedModel);
+			}
+		}
+
+		// Update extractedModel
+		for (java.util.Map.Entry<String, Set<? extends Element>> entry : annotatedElementsMap.entrySet()) {
+			extractedModel.putRootAnnotatedElements(entry.getKey(), entry.getValue());
+		}
+
+		timeStats.stop("Run ADI");
+	}
+
+	@SuppressWarnings("unchecked")
+	private void checkADIDependencies(final Map<Element, Object> dependencies, final Map<String, AnnotationHandler<?>> annotationHandlersFromTarget,
+			final Map<String, Set<? extends Element>> annotatedElementsMap, List<Entry<Element, Object>> analyzedDependencies, final AnnotationElementsHolder extractedModel) {
+
+		if (analyzedDependencies == null) {
+			analyzedDependencies = new LinkedList<>();
+		}
+
+		for (Entry<Element, Object> dependency : dependencies.entrySet()) {
+
+			// Avoid circular dependencies
+			if (analyzedDependencies.contains(dependency)) {
+				continue;
+			}
+			analyzedDependencies.add(dependency);
+
+			final Element dependentElement = dependency.getKey();
+			final Class<? extends Annotation> dependencyAnnotation = (Class<? extends Annotation>) (dependency.getValue() instanceof Annotation ? dependency.getValue().getClass()
+					: dependency.getValue());
+
+			// Check if the element has the annotation, if not add it to ADI
+			if (dependentElement.getAnnotation(dependencyAnnotation) == null) {
+
+				Set set = annotatedElementsMap.get(dependencyAnnotation.getCanonicalName());
+				if (set == null) {
+					set = new HashSet<>(extractedModel.getRootAnnotatedElements(dependencyAnnotation.getCanonicalName()));
+					annotatedElementsMap.put(dependencyAnnotation.getCanonicalName(), set);
+				}
+				set.add(dependentElement);
+
+				androidAnnotationsEnv.addAnnotationToADI(dependentElement, dependency.getValue());
+			}
+
+			// Check for more dependencies if any, DFS search
+			AnnotationHandler<?> annotationHandlerForDependency = annotationHandlersFromTarget.get(dependencyAnnotation.getCanonicalName());
+			Map<Element, Object> subDependencies = annotationHandlerForDependency.getDependencies(dependentElement);
+			checkADIDependencies(subDependencies, annotationHandlersFromTarget, annotatedElementsMap, analyzedDependencies, extractedModel);
+
+		}
+
+	}
+
+	protected AnnotationElements validateAnnotations(AnnotationElements extractedModel, AnnotationElementsHolder validatingHolder) {
 		timeStats.start("Validate Annotations");
 		ModelValidator modelValidator = new ModelValidator(androidAnnotationsEnv);
 		AnnotationElements validatedAnnotations = modelValidator.validate(extractedModel, validatingHolder);
@@ -218,7 +323,7 @@ public class AndroidAnnotationProcessor extends AbstractProcessor {
 		return validatedAnnotations;
 	}
 
-	private ModelProcessor.ProcessResult processAnnotations(AnnotationElements validatedModel) throws Exception {
+	protected ModelProcessor.ProcessResult processAnnotations(AnnotationElements validatedModel) throws Exception {
 		timeStats.start("Process Annotations");
 		ModelProcessor modelProcessor = new ModelProcessor(androidAnnotationsEnv);
 		ModelProcessor.ProcessResult processResult = modelProcessor.process(validatedModel);
@@ -226,7 +331,7 @@ public class AndroidAnnotationProcessor extends AbstractProcessor {
 		return processResult;
 	}
 
-	private void generateSources(ModelProcessor.ProcessResult processResult) throws IOException {
+	protected void generateSources(ModelProcessor.ProcessResult processResult) throws IOException {
 		timeStats.start("Generate Sources");
 		LOGGER.info("Number of files generated by AndroidAnnotations: {}", processResult.codeModel.countArtifacts());
 		CodeModelGenerator modelGenerator = new CodeModelGenerator(processingEnv.getFiler(), coreVersion, androidAnnotationsEnv.getOptionValue(CodeModelGenerator.OPTION_ENCODING));
@@ -235,7 +340,7 @@ public class AndroidAnnotationProcessor extends AbstractProcessor {
 	}
 
 	private void handleException(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv, ProcessingException e) {
-		String errorMessage = errorHelper.getErrorMessage(processingEnv, e, coreVersion);
+		String errorMessage = errorHelper.getErrorMessage(processingEnv, e, getFramework(), coreVersion);
 
 		/*
 		 * Printing exception as an error on a random element. The exception is not
@@ -265,5 +370,4 @@ public class AndroidAnnotationProcessor extends AbstractProcessor {
 	public SourceVersion getSupportedSourceVersion() {
 		return SourceVersion.latest();
 	}
-
 }

@@ -77,7 +77,7 @@ import java.lang.annotation.Target;
  * @see LongClick
  */
 @Retention(RetentionPolicy.CLASS)
-@Target(ElementType.METHOD)
+@Target({ElementType.METHOD, ElementType.FIELD})
 public @interface Touch {
 
 	/**

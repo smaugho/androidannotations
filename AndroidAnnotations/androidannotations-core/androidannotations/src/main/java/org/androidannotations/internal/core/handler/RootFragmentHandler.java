@@ -66,7 +66,7 @@ public class RootFragmentHandler extends BaseAnnotationHandler<EBeanHolder> impl
 	}
 
 	@Override
-	public JBlock getInvocationBlock(EBeanHolder holder) {
+	public JBlock getInvocationBlock(Element element, EBeanHolder holder) {
 		return holder.getInitBodyInjectionBlock();
 	}
 

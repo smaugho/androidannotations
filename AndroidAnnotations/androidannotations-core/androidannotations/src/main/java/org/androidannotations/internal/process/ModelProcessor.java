@@ -153,8 +153,10 @@ public class ModelProcessor {
 	private <T extends GeneratedClassHolder> void processThrowing(AnnotationHandler<T> handler, Element element, T generatedClassHolder) throws ProcessingException {
 		try {
 			handler.process(element, generatedClassHolder);
-		} catch (Exception e) {
-			throw new ProcessingException(e, element);
+		} catch (Throwable e) {
+			LOGGER.error(element, "Internal crash while processing element {} with annotation {}. \n" + "Please report this in " + handler.getAndroidAnnotationPlugin().getIssuesUrl(), element,
+					handler.getTarget());
+			LOGGER.error(element, e, "Crash Report: {}");
 		}
 	}
 

@@ -72,7 +72,7 @@ import java.lang.annotation.Target;
  * @see ItemLongClick
  */
 @Retention(RetentionPolicy.CLASS)
-@Target(ElementType.METHOD)
+@Target({ElementType.METHOD, ElementType.FIELD})
 public @interface ItemSelect {
 
 	/**

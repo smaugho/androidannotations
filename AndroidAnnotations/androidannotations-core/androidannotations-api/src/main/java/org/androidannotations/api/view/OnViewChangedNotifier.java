@@ -21,6 +21,8 @@ import java.util.Set;
 public class OnViewChangedNotifier {
 
 	private static OnViewChangedNotifier currentNotifier;
+	
+	private boolean wasCalled = false; 
 
 	public static OnViewChangedNotifier replaceNotifier(OnViewChangedNotifier notifier) {
 		OnViewChangedNotifier previousNotifier = currentNotifier;
@@ -37,9 +39,14 @@ public class OnViewChangedNotifier {
 	private final Set<OnViewChangedListener> listeners = new LinkedHashSet<>();
 
 	public void notifyViewChanged(HasViews hasViews) {
+		wasCalled = true;
 		for (OnViewChangedListener listener : listeners) {
 			listener.onViewChanged(hasViews);
 		}
+	}
+	
+	public boolean wasCalled() {
+		return this.wasCalled;
 	}
 
 }

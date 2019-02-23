@@ -83,7 +83,7 @@ public class BindingObjectHandler extends CoreBaseAnnotationHandler<EComponentWi
 	}
 
 	@Override
-	public JBlock getInvocationBlock(EComponentWithViewSupportHolder holder) {
+	public JBlock getInvocationBlock(Element element, EComponentWithViewSupportHolder holder) {
 		return holder.getOnViewChangedBodyAfterInjectionBlock();
 	}
 

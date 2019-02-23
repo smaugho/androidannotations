@@ -31,6 +31,7 @@ import javax.lang.model.type.TypeMirror;
 import org.androidannotations.ElementValidation;
 import org.androidannotations.handler.MethodInjectionHandler;
 import org.androidannotations.holder.GeneratedClassHolder;
+import org.androidannotations.internal.virtual.VirtualElement;
 
 import com.helger.jcodemodel.AbstractJClass;
 import com.helger.jcodemodel.IJExpression;
@@ -47,7 +48,7 @@ public class InjectHelper<T extends GeneratedClassHolder> {
 
 	private final ValidatorHelper validatorHelper;
 	private final MethodInjectionHandler<T> handler;
-	private final APTCodeModelHelper codeModelHelper;
+	private APTCodeModelHelper codeModelHelper;
 
 	public InjectHelper(ValidatorHelper validatorHelper, MethodInjectionHandler<T> handler) {
 		this.codeModelHelper = new APTCodeModelHelper(validatorHelper.environment());
@@ -108,14 +109,15 @@ public class InjectHelper<T extends GeneratedClassHolder> {
 			methodParameterMap.put(method, parameterList);
 		}
 		if (targetBlock == null) {
-			targetBlock = createBlock(holder, true);
+			targetBlock = createBlock(element, holder, true);
 			methodBlockMap.put(method, targetBlock);
 		}
 
 		for (int paramIndex = 0; paramIndex < paramCount; paramIndex++) {
 			VariableElement param = parameters.get(paramIndex);
-			if (param.equals(element)) {
-				AbstractJClass type = codeModelHelper.typeMirrorToJClass(param.asType());
+			if (param.equals(element) || (element instanceof VirtualElement && param.equals(((VirtualElement) element).getElement()))) {
+
+				AbstractJClass type = codeModelHelper.elementTypeToJClass(param);
 				JVar fieldRef = targetBlock.decl(type, param.getSimpleName().toString(), getDefault(param.asType()));
 
 				handler.assignValue(targetBlock, fieldRef, holder, param, param);
@@ -146,7 +148,7 @@ public class InjectHelper<T extends GeneratedClassHolder> {
 		String fieldName = element.getSimpleName().toString();
 		JFieldRef fieldRef = JExpr._this().ref(fieldName);
 
-		handler.assignValue(createBlock(holder, false), fieldRef, holder, element, element);
+		handler.assignValue(createBlock(element, holder, false), fieldRef, holder, element, element);
 	}
 
 	private void processMethod(Element element, T holder) {
@@ -154,8 +156,8 @@ public class InjectHelper<T extends GeneratedClassHolder> {
 		VariableElement param = executableElement.getParameters().get(0);
 		String methodName = executableElement.getSimpleName().toString();
 
-		JBlock block = createBlock(holder, true);
-		AbstractJClass type = codeModelHelper.typeMirrorToJClass(param.asType());
+		JBlock block = createBlock(element, holder, true);
+		AbstractJClass type = codeModelHelper.elementTypeToJClass(param);
 		JVar fieldRef = block.decl(type, param.getSimpleName().toString(), getDefault(param.asType()));
 		handler.assignValue(block, fieldRef, holder, element, param);
 		block.add(JExpr.invoke(methodName).arg(fieldRef));
@@ -185,11 +187,11 @@ public class InjectHelper<T extends GeneratedClassHolder> {
 		}
 	}
 
-	private JBlock createBlock(T holder, boolean requiresBracers) {
+	private JBlock createBlock(Element element, T holder, boolean requiresBracers) {
 		if (requiresBracers) {
-			return handler.getInvocationBlock(holder).block();
+			return handler.getInvocationBlock(element, holder).block();
 		} else {
-			return handler.getInvocationBlock(holder);
+			return handler.getInvocationBlock(element, holder);
 		}
 	}
 

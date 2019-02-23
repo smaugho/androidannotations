@@ -60,7 +60,7 @@ public class NonConfigurationInstanceHandler extends BaseAnnotationHandler<EActi
 	@Override
 	public void process(Element element, EActivityHolder holder) throws JClassAlreadyExistsException {
 		String fieldName = element.getSimpleName().toString();
-		AbstractJClass fieldType = codeModelHelper.typeMirrorToJClass(element.asType());
+		AbstractJClass fieldType = codeModelHelper.elementTypeToJClass(element);
 
 		NonConfigurationHolder ncHolder = holder.getNonConfigurationHolder();
 		JFieldVar ncHolderField = ncHolder.createField(fieldName, fieldType);

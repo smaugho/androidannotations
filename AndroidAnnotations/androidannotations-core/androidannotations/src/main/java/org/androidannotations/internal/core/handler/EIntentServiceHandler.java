@@ -39,6 +39,7 @@ public class EIntentServiceHandler extends BaseAnnotationHandler<EIntentServiceH
 
 	@Override
 	public void validate(Element element, ElementValidation validation) {
+
 		validatorHelper.extendsIntentService(element, validation);
 
 		validatorHelper.hasNotMultipleAnnotatedMethodWithSameName(element, validation, ServiceAction.class);

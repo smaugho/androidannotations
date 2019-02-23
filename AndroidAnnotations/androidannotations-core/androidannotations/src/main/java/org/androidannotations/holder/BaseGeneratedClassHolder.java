@@ -150,4 +150,8 @@ public abstract class BaseGeneratedClassHolder implements GeneratedClassHolder {
 		}
 		return currentPluginHolder;
 	}
+	
+	public Map<Class<?>, Object> getPluginHolders() {
+		return pluginHolders;
+	}
 }

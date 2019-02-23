@@ -55,7 +55,7 @@ import com.helger.jcodemodel.JVar;
 public class FragmentArgHandler extends BaseAnnotationHandler<EFragmentHolder>
 		implements MethodInjectionHandler<EFragmentHolder>, MethodInjectionHandler.AfterAllParametersInjectedHandler<EFragmentHolder> {
 
-	private final InjectHelper<EFragmentHolder> injectHelper;
+	protected final InjectHelper<EFragmentHolder> injectHelper;
 
 	public FragmentArgHandler(AndroidAnnotationsEnvironment environment) {
 		super(FragmentArg.class, environment);
@@ -81,7 +81,7 @@ public class FragmentArgHandler extends BaseAnnotationHandler<EFragmentHolder>
 	}
 
 	@Override
-	public JBlock getInvocationBlock(EFragmentHolder holder) {
+	public JBlock getInvocationBlock(Element element, EFragmentHolder holder) {
 		return holder.getInjectArgsBlock();
 	}
 
@@ -95,7 +95,7 @@ public class FragmentArgHandler extends BaseAnnotationHandler<EFragmentHolder>
 		}
 
 		TypeMirror actualType = codeModelHelper.getActualTypeOfEnclosingElementOfInjectedElement(holder, param);
-		AbstractJClass elementClass = codeModelHelper.typeMirrorToJClass(actualType);
+		AbstractJClass elementClass = codeModelHelper.typeMirrorToJClass(actualType, param);
 		BundleHelper bundleHelper = new BundleHelper(getEnvironment(), actualType);
 
 		JVar bundle = holder.getInjectBundleArgs();
@@ -158,13 +158,13 @@ public class FragmentArgHandler extends BaseAnnotationHandler<EFragmentHolder>
 
 		for (ArgHelper argHelper : argHelpers) {
 			String fieldName = argHelper.param.getSimpleName().toString();
-
+			
 			TypeMirror actualType = codeModelHelper.getActualTypeOfEnclosingElementOfInjectedElement(holder, argHelper.param);
 			BundleHelper bundleHelper = new BundleHelper(getEnvironment(), actualType);
 
 			JFieldVar argKeyStaticField = getOrCreateStaticArgField(holder, argHelper.argKey, fieldName);
 
-			AbstractJClass paramClass = codeModelHelper.typeMirrorToJClass(actualType);
+			AbstractJClass paramClass = codeModelHelper.typeMirrorToJClass(actualType, argHelper.param);
 			JVar arg = builderMethod.param(paramClass, fieldName);
 			builderMethod.body().add(bundleHelper.getExpressionToSaveFromField(builderArgsField, argKeyStaticField, arg));
 
@@ -175,7 +175,7 @@ public class FragmentArgHandler extends BaseAnnotationHandler<EFragmentHolder>
 		builderMethod.body()._return(_this());
 	}
 
-	private static class ArgHelper {
+	protected static class ArgHelper {
 		private final Element param;
 		private final String argKey;
 

@@ -25,6 +25,8 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.AnnotationMirror;
@@ -52,6 +54,10 @@ import org.androidannotations.logger.LoggerFactory;
 import org.androidannotations.rclass.IRInnerClass;
 
 import com.helger.jcodemodel.JFieldRef;
+import com.sun.source.tree.AnnotationTree;
+import com.sun.source.tree.ExpressionTree;
+import com.sun.source.util.TreePathScanner;
+import com.sun.source.util.Trees;
 
 public class AnnotationHelper {
 
@@ -61,9 +67,13 @@ public class AnnotationHelper {
 	private static final Logger LOGGER = LoggerFactory.getLogger(AnnotationHelper.class);
 
 	private final AndroidAnnotationsEnvironment environment;
+	private final CompilationTreeHelper compilationTreeHelper;
+	private final ADIHelper adiHelper;
 
 	public AnnotationHelper(AndroidAnnotationsEnvironment environment) {
 		this.environment = environment;
+		this.adiHelper = new ADIHelper(environment);
+		this.compilationTreeHelper = new CompilationTreeHelper(environment);
 	}
 
 	public AndroidAnnotationsEnvironment getEnvironment() {
@@ -264,6 +274,13 @@ public class AnnotationHelper {
 
 	public String extractElementName(Element element, String annotationName) {
 		String elementName = element.getSimpleName().toString();
+
+		// Permit enumeration in the field
+		Matcher match = Pattern.compile("((?:\\w|_|\\d|\\$)+\\w)(?:\\d+|_|_\\d+)$").matcher(elementName);
+		if (match.find()) {
+			elementName = match.group(1);
+		}
+
 		int lastIndex = elementName.lastIndexOf(actionName(annotationName));
 		if (lastIndex != -1) {
 			elementName = elementName.substring(0, lastIndex);
@@ -385,6 +402,7 @@ public class AnnotationHelper {
 		Map<? extends ExecutableElement, ? extends AnnotationValue> elementValues = annotationMirror.getElementValues();
 
 		for (Map.Entry<? extends ExecutableElement, ? extends AnnotationValue> entry : elementValues.entrySet()) {
+
 			/*
 			 * "methodName" is unset when the default value is used
 			 */
@@ -432,6 +450,64 @@ public class AnnotationHelper {
 		return null;
 	}
 
+	public String extractAnnotationClassNameParameter(Element element, final String annotationName, String methodName) {
+
+		AnnotationMirror annotationMirror = findAnnotationMirror(element, annotationName);
+		Map<? extends ExecutableElement, ? extends AnnotationValue> elementValues = annotationMirror.getElementValues();
+
+		for (Map.Entry<? extends ExecutableElement, ? extends AnnotationValue> entry : elementValues.entrySet()) {
+			/*
+			 * "methodName" is unset when the default value is used
+			 */
+			if (methodName.equals(entry.getKey().getSimpleName().toString())) {
+
+				AnnotationValue annotationValue = entry.getValue();
+
+				String result = annotationValue + "";
+				if (result.endsWith(".class")) {
+					result = result.substring(0, result.length() - 6);
+				}
+
+				if ("<error>".equals(result)) {
+
+					final StringBuilder resultBuilder = new StringBuilder();
+
+					compilationTreeHelper.visitElementTree(element, new TreePathScanner<Boolean, Trees>() {
+
+						private Pattern pattern = Pattern.compile("value\\s*=\\s*([a-zA-Z_][a-zA-Z_0-9.]+)\\.class$");
+
+						@Override
+						public Boolean visitAnnotation(AnnotationTree annotationTree, Trees trees) {
+
+							if (!annotationName.endsWith("." + annotationTree.getAnnotationType().toString())) {
+								return super.visitAnnotation(annotationTree, trees);
+							}
+
+							List<? extends ExpressionTree> args = annotationTree.getArguments();
+							for (ExpressionTree arg : args) {
+								Matcher matcher = pattern.matcher(arg.toString());
+								if (matcher.find()) {
+									resultBuilder.append(matcher.group(1));
+									break;
+								}
+							}
+
+							return super.visitAnnotation(annotationTree, trees);
+						}
+
+					});
+					result = resultBuilder.toString();
+
+				}
+
+				return result;
+			}
+		}
+
+		return null;
+
+	}
+
 	public DeclaredType extractAnnotationClassParameter(Element element, String annotationName) {
 		return extractAnnotationClassParameter(element, annotationName, DEFAULT_FIELD_NAME_VALUE);
 	}
@@ -449,7 +525,7 @@ public class AnnotationHelper {
 
 	public boolean hasOneOfClassAnnotations(Element element, List<Class<? extends Annotation>> validAnnotations) {
 		for (Class<? extends Annotation> validAnnotation : validAnnotations) {
-			if (element.getAnnotation(validAnnotation) != null) {
+			if (adiHelper.getAnnotation(element, validAnnotation) != null) {
 				return true;
 			}
 		}

@@ -34,6 +34,7 @@ public abstract class BaseGeneratingAnnotationHandler<T extends GeneratedClassHo
 
 	@Override
 	protected void validate(Element element, ElementValidation valid) {
+
 		validatorHelper.isNotFinal(element, valid);
 
 		if (isInnerClass(element)) {

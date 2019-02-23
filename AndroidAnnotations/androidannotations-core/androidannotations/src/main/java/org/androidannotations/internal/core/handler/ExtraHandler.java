@@ -51,7 +51,7 @@ import com.helger.jcodemodel.JVar;
 
 public class ExtraHandler extends BaseAnnotationHandler<EActivityHolder> implements MethodInjectionHandler<EActivityHolder>, MethodInjectionHandler.AfterAllParametersInjectedHandler<EActivityHolder> {
 
-	private final InjectHelper<EActivityHolder> injectHelper;
+	protected final InjectHelper<EActivityHolder> injectHelper;
 
 	public ExtraHandler(AndroidAnnotationsEnvironment environment) {
 		super(Extra.class, environment);
@@ -82,7 +82,7 @@ public class ExtraHandler extends BaseAnnotationHandler<EActivityHolder> impleme
 	}
 
 	@Override
-	public JBlock getInvocationBlock(EActivityHolder holder) {
+	public JBlock getInvocationBlock(Element element, EActivityHolder holder) {
 		return holder.getInjectExtrasBlock();
 	}
 
@@ -96,10 +96,10 @@ public class ExtraHandler extends BaseAnnotationHandler<EActivityHolder> impleme
 
 		JFieldVar extraKeyStaticField = getOrCreateStaticExtraField(holder, extraKey, fieldName);
 		if (element.getKind() != ElementKind.PARAMETER) {
-			holder.getIntentBuilder().getPutExtraMethod(element, new IntentBuilder.IntentExtra(param.asType(), fieldName, extraKeyStaticField));
+			holder.getIntentBuilder().getPutExtraMethod(element, new IntentBuilder.IntentExtra(param, fieldName, extraKeyStaticField));
 		}
 
-		AbstractJClass elementClass = codeModelHelper.typeMirrorToJClass(param.asType());
+		AbstractJClass elementClass = codeModelHelper.elementTypeToJClass(param);
 
 		JMethod injectExtrasMethod = holder.getInjectExtrasMethod();
 		JVar extras = holder.getInjectExtras();
@@ -123,7 +123,7 @@ public class ExtraHandler extends BaseAnnotationHandler<EActivityHolder> impleme
 			String fieldName = param.getSimpleName().toString();
 			String extraKey = extractExtraKey(param, fieldName);
 			JFieldVar extraKeyStaticField = getOrCreateStaticExtraField(holder, extraKey, fieldName);
-			params.add(new IntentBuilder.IntentExtra(param.asType(), fieldName, extraKeyStaticField));
+			params.add(new IntentBuilder.IntentExtra(param, fieldName, extraKeyStaticField));
 		}
 		holder.getIntentBuilder().getPutExtraMethod(method, params);
 	}

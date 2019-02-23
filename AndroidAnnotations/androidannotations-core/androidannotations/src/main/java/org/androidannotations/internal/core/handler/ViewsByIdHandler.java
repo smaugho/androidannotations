@@ -76,14 +76,14 @@ public class ViewsByIdHandler extends BaseAnnotationHandler<EComponentWithViewSu
 	}
 
 	@Override
-	public JBlock getInvocationBlock(EComponentWithViewSupportHolder holder) {
+	public JBlock getInvocationBlock(Element element, EComponentWithViewSupportHolder holder) {
 		return holder.getOnViewChangedBodyInjectionBlock();
 	}
 
 	@Override
 	public void assignValue(JBlock targetBlock, IJAssignmentTarget fieldRef, EComponentWithViewSupportHolder holder, Element element, Element param) {
 		TypeMirror viewType = extractViewClass(param);
-		AbstractJClass viewClass = codeModelHelper.typeMirrorToJClass(viewType);
+		AbstractJClass viewClass = codeModelHelper.typeMirrorToJClass(viewType, param);
 
 		String listName = getListName(element, param);
 		IJExpression arrayList = instantiateArrayList(viewType, holder, "list_" + listName);

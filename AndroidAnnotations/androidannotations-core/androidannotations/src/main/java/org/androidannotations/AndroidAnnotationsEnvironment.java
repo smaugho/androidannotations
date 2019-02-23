@@ -29,6 +29,7 @@ import org.androidannotations.helper.AndroidManifest;
 import org.androidannotations.helper.ClassesHolder;
 import org.androidannotations.holder.GeneratedClassHolder;
 import org.androidannotations.internal.model.AnnotationElements;
+import org.androidannotations.internal.process.ProcessHolder;
 import org.androidannotations.plugin.AndroidAnnotationsPlugin;
 import org.androidannotations.rclass.IRClass;
 
@@ -78,9 +79,23 @@ public interface AndroidAnnotationsEnvironment {
 
 	ClassesHolder.Classes getClasses();
 
+	ProcessHolder getProcessHolder();
+
+	ClassesHolder getClassesHolder();
+
 	List<Class<? extends Annotation>> getGeneratingAnnotations();
 
 	boolean isAndroidAnnotation(String annotationQualifiedName);
 
 	List<AndroidAnnotationsPlugin> getPlugins();
+
+	Set<Class<? extends Annotation>> getADIForClass(String clazz);
+
+	Set<Class<? extends Annotation>> getADIOnElement(Element element);
+
+	Set<Annotation> getADIAnnotationsOnElement(Element element, Class<? extends Annotation> annotationClass);
+
+	void addAnnotationToADI(Element element, Object annotation);
+
+	void addAnnotationToADI(String clazz, Object annotation);
 }

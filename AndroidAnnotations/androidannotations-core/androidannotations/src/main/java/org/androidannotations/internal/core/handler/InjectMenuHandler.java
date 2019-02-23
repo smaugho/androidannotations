@@ -59,7 +59,7 @@ public class InjectMenuHandler extends BaseAnnotationHandler<HasOptionsMenu> imp
 	}
 
 	@Override
-	public JBlock getInvocationBlock(HasOptionsMenu holder) {
+	public JBlock getInvocationBlock(Element element, HasOptionsMenu holder) {
 		return holder.getOnCreateOptionsMenuMethodBody();
 	}
 

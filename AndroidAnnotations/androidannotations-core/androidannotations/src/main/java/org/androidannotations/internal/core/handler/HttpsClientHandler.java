@@ -77,7 +77,7 @@ public class HttpsClientHandler extends BaseAnnotationHandler<EComponentHolder> 
 	}
 
 	@Override
-	public JBlock getInvocationBlock(EComponentHolder holder) {
+	public JBlock getInvocationBlock(Element element, EComponentHolder holder) {
 		return holder.getInitBodyInjectionBlock();
 	}
 

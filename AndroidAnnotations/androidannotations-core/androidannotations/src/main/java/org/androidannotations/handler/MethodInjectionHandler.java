@@ -28,7 +28,7 @@ import com.helger.jcodemodel.IJAssignmentTarget;
 import com.helger.jcodemodel.JBlock;
 
 public interface MethodInjectionHandler<T extends GeneratedClassHolder> {
-	JBlock getInvocationBlock(T holder);
+	JBlock getInvocationBlock(Element element, T holder);
 
 	void assignValue(JBlock targetBlock, IJAssignmentTarget fieldRef, T holder, Element element, Element param);
 

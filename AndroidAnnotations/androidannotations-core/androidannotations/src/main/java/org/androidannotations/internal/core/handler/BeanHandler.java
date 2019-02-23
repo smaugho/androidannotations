@@ -18,6 +18,8 @@ package org.androidannotations.internal.core.handler;
 
 import static com.helger.jcodemodel.JExpr._null;
 
+import java.util.List;
+
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.TypeElement;
@@ -57,9 +59,28 @@ public class BeanHandler extends BaseAnnotationHandler<EComponentHolder> impleme
 			return;
 		}
 
-		validatorHelper.typeOrTargetValueHasAnnotation(EBean.class, element, validation);
-
 		validatorHelper.isNotPrivate(element, validation);
+
+		TypeElement beanTypeElement = getProcessingEnvironment().getElementUtils().getTypeElement(element.asType().toString());
+		if (beanTypeElement == null) {
+			validation.addError("@Bean cannot inject the class " + element.asType());
+			return;
+		}
+
+		if (beanTypeElement.getKind().equals(ElementKind.INTERFACE)) {
+			List<String> implementations = EBeanHandler.getImplementationsFor(beanTypeElement.getQualifiedName().toString());
+			if (implementations != null) {
+
+				if (implementations.size() > 1) {
+					validation.addError("@Bean cannot decide between multiple implementations of an interface: " + implementations);
+				}
+
+				return;
+			}
+		}
+
+		validatorHelper.typeHasAnnotation(EBean.class, beanTypeElement, validation);
+
 	}
 
 	@Override
@@ -68,24 +89,40 @@ public class BeanHandler extends BaseAnnotationHandler<EComponentHolder> impleme
 	}
 
 	@Override
-	public JBlock getInvocationBlock(EComponentHolder holder) {
+	public JBlock getInvocationBlock(Element element, EComponentHolder holder) {
 		return holder.getInitBodyInjectionBlock();
 	}
 
 	@Override
 	public void assignValue(JBlock targetBlock, IJAssignmentTarget fieldRef, EComponentHolder holder, Element element, Element param) {
-		TypeMirror typeMirror = annotationHelper.extractAnnotationClassParameter(element);
-		if (typeMirror == null) {
-			typeMirror = param.asType();
-			typeMirror = getProcessingEnvironment().getTypeUtils().erasure(typeMirror);
+
+		String typeQualifiedName = null;
+		TypeElement beanTypeElement = getProcessingEnvironment().getElementUtils().getTypeElement(element.asType().toString());
+
+		if (beanTypeElement.getKind().equals(ElementKind.INTERFACE)) {
+			List<String> implementations = EBeanHandler.getImplementationsFor(beanTypeElement.getQualifiedName().toString());
+			if (implementations != null) {
+				typeQualifiedName = implementations.get(0);
+			}
 		}
-		String typeQualifiedName = typeMirror.toString();
+
+		if (typeQualifiedName == null) {
+
+			TypeMirror typeMirror = annotationHelper.extractAnnotationClassParameter(element);
+			if (typeMirror == null) {
+				typeMirror = param.asType();
+				typeMirror = getProcessingEnvironment().getTypeUtils().erasure(typeMirror);
+			}
+			typeQualifiedName = typeMirror.toString();
+
+		}
+
 		AbstractJClass injectedClass = getJClass(annotationHelper.generatedClassQualifiedNameFromQualifiedName(typeQualifiedName));
 		JInvocation beanInstance = injectedClass.staticInvoke(EBeanHolder.GET_INSTANCE_METHOD_NAME).arg(holder.getContextRef());
 
 		TypeElement declaredEBean = getProcessingEnvironment().getElementUtils().getTypeElement(typeQualifiedName);
 		if (declaredEBean != null) {
-			EBean annotation = declaredEBean.getAnnotation(EBean.class);
+			EBean annotation = adiHelper.getAnnotation(declaredEBean, EBean.class);
 			if (annotation.scope() == EBean.Scope.Default) {
 				beanInstance.arg(holder.getRootFragmentRef());
 			}
@@ -108,4 +145,5 @@ public class BeanHandler extends BaseAnnotationHandler<EComponentHolder> impleme
 	public void validateEnclosingElement(Element element, ElementValidation valid) {
 		validatorHelper.enclosingElementHasEnhancedComponentAnnotation(element, valid);
 	}
+
 }

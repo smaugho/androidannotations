@@ -71,7 +71,7 @@ public class PreferenceClickHandler extends AbstractPreferenceListenerHandler {
 	}
 
 	@Override
-	protected void processParameters(HasPreferences holder, JMethod listenerMethod, JInvocation call, List<? extends VariableElement> userParameters) {
+	public void processParameters(HasPreferences holder, JMethod listenerMethod, JInvocation call, List<? extends VariableElement> userParameters) {
 		String preferenceClassName = holder.getBasePreferenceClass().fullName();
 
 		JVar preferenceParam = listenerMethod.param(getEnvironment().getJClass(preferenceClassName), "preference");
@@ -82,17 +82,17 @@ public class PreferenceClickHandler extends AbstractPreferenceListenerHandler {
 	}
 
 	@Override
-	protected JMethod createListenerMethod(JDefinedClass listenerAnonymousClass) {
+	public JMethod createListenerMethod(JDefinedClass listenerAnonymousClass) {
 		return listenerAnonymousClass.method(JMod.PUBLIC, getCodeModel().BOOLEAN, "onPreferenceClick");
 	}
 
 	@Override
-	protected String getSetterName() {
+	public String getSetterName() {
 		return "setOnPreferenceClickListener";
 	}
 
 	@Override
-	protected AbstractJClass getListenerClass(HasPreferences holder) {
+	public AbstractJClass getListenerClass(HasPreferences holder) {
 		return holder.usingAndroidxPreference() ? getClasses().ANDROIDX_PREFERENCE_CLICK_LISTENER
 				: holder.usingSupportV7Preference() ? getClasses().SUPPORT_V7_PREFERENCE_CLICK_LISTENER : getClasses().PREFERENCE_CLICK_LISTENER;
 	}

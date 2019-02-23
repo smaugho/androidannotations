@@ -117,7 +117,7 @@ public class ReceiverHandler extends CoreBaseAnnotationHandler<HasReceiverRegist
 
 		List<? extends VariableElement> methodParameters = executableElement.getParameters();
 		for (VariableElement param : methodParameters) {
-			AbstractJClass extraParamClass = codeModelHelper.typeMirrorToJClass(param.asType());
+			AbstractJClass extraParamClass = codeModelHelper.elementTypeToJClass(param);
 
 			if (extraParamClass.equals(getClasses().CONTEXT)) {
 				methodCall.arg(contextVar);

@@ -67,7 +67,7 @@ public class RootContextHandler extends BaseAnnotationHandler<EBeanHolder> imple
 	}
 
 	@Override
-	public JBlock getInvocationBlock(EBeanHolder holder) {
+	public JBlock getInvocationBlock(Element element, EBeanHolder holder) {
 		return holder.getInitBodyInjectionBlock();
 	}
 

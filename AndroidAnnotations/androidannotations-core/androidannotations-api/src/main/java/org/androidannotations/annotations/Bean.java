@@ -20,6 +20,8 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import org.androidannotations.annotations.export.Import;
+
 /**
  * <p>
  * Injects an {@link EBean} annotated class in an enhanced class.
@@ -75,6 +77,7 @@ import java.lang.annotation.Target;
  * 
  * @see EBean
  */
+@Import
 @Retention(RetentionPolicy.CLASS)
 @Target({ ElementType.FIELD, ElementType.METHOD, ElementType.PARAMETER })
 public @interface Bean {

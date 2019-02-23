@@ -16,7 +16,10 @@
  */
 package org.androidannotations.handler;
 
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.Element;
@@ -26,11 +29,13 @@ import javax.lang.model.util.ElementFilter;
 
 import org.androidannotations.AndroidAnnotationsEnvironment;
 import org.androidannotations.ElementValidation;
+import org.androidannotations.helper.ADIHelper;
 import org.androidannotations.helper.APTCodeModelHelper;
 import org.androidannotations.helper.ClassesHolder;
 import org.androidannotations.helper.IdAnnotationHelper;
 import org.androidannotations.helper.IdValidatorHelper;
 import org.androidannotations.holder.GeneratedClassHolder;
+import org.androidannotations.plugin.AndroidAnnotationsPlugin;
 
 import com.helger.jcodemodel.AbstractJClass;
 import com.helger.jcodemodel.JCodeModel;
@@ -41,7 +46,10 @@ public abstract class BaseAnnotationHandler<T extends GeneratedClassHolder> impl
 	protected IdAnnotationHelper annotationHelper;
 	protected IdValidatorHelper validatorHelper;
 	protected APTCodeModelHelper codeModelHelper;
+	protected ADIHelper adiHelper;
 	private AndroidAnnotationsEnvironment environment;
+
+	private AndroidAnnotationsPlugin androidAnnotationsPlugin;
 
 	public BaseAnnotationHandler(Class<?> targetClass, AndroidAnnotationsEnvironment environment) {
 		this(targetClass.getCanonicalName(), environment);
@@ -53,11 +61,38 @@ public abstract class BaseAnnotationHandler<T extends GeneratedClassHolder> impl
 		annotationHelper = new IdAnnotationHelper(environment, target);
 		validatorHelper = new IdValidatorHelper(annotationHelper);
 		codeModelHelper = new APTCodeModelHelper(environment);
+		adiHelper = new ADIHelper(environment);
+	}
+
+	@Override
+	public void setAndroidAnnotationPlugin(AndroidAnnotationsPlugin plugin) {
+		this.androidAnnotationsPlugin = plugin;
+	}
+
+	@Override
+	public AndroidAnnotationsPlugin getAndroidAnnotationPlugin() {
+		return this.androidAnnotationsPlugin;
 	}
 
 	@Override
 	public String getTarget() {
 		return target;
+	}
+
+	@Override
+	public String getBeforeTarget() {
+		return null;
+	}
+
+	@Override
+	public Map<Element, Object> getDependencies(Element element) {
+		Map<Element, Object> dependencies = new HashMap<>();
+		getDependencies(element, dependencies);
+		return Collections.unmodifiableMap(dependencies);
+	}
+
+	public void getDependencies(Element element, Map<Element, Object> dependencies) {
+
 	}
 
 	@Override

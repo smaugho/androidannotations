@@ -75,7 +75,7 @@ import java.lang.annotation.Target;
  * </blockquote>
  */
 @Retention(RetentionPolicy.CLASS)
-@Target(ElementType.METHOD)
+@Target({ElementType.METHOD, ElementType.FIELD})
 public @interface FocusChange {
 
 	/**

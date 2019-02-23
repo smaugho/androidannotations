@@ -15,18 +15,30 @@
  */
 package org.androidannotations.handler;
 
+import java.util.Map;
+
 import javax.lang.model.element.Element;
 
 import org.androidannotations.ElementValidation;
 import org.androidannotations.holder.GeneratedClassHolder;
+import org.androidannotations.plugin.AndroidAnnotationsPlugin;
 
 public interface AnnotationHandler<T extends GeneratedClassHolder> {
 
 	String getTarget();
+	
+	AndroidAnnotationsPlugin getAndroidAnnotationPlugin();
+	
+	void setAndroidAnnotationPlugin(AndroidAnnotationsPlugin plugin);
 
 	ElementValidation validate(Element element);
 
 	void process(Element element, T holder) throws Exception;
-
+	
+	String getBeforeTarget();
+	
+	//Object in the Map can be a Class<? extends Annotation> or an Annotation
+	Map<Element, Object> getDependencies(Element element);
+	
 	boolean isEnabled();
 }

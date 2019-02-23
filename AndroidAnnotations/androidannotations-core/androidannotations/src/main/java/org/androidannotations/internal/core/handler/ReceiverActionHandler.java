@@ -128,7 +128,7 @@ public class ReceiverActionHandler extends BaseAnnotationHandler<EReceiverHolder
 
 		List<? extends VariableElement> methodParameters = executableElement.getParameters();
 		for (VariableElement param : methodParameters) {
-			AbstractJClass extraParamClass = codeModelHelper.typeMirrorToJClass(param.asType());
+			AbstractJClass extraParamClass = codeModelHelper.elementTypeToJClass(param);
 
 			if (extraParamClass.equals(getClasses().CONTEXT)) {
 				callActionInvocation.arg(holder.getOnReceiveContext());

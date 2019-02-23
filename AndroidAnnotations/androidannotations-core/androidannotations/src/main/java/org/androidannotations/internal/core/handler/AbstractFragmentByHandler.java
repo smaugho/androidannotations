@@ -81,7 +81,7 @@ public abstract class AbstractFragmentByHandler extends CoreBaseAnnotationHandle
 	}
 
 	@Override
-	public JBlock getInvocationBlock(EComponentWithViewSupportHolder holder) {
+	public JBlock getInvocationBlock(Element element, EComponentWithViewSupportHolder holder) {
 		return holder.getOnViewChangedBodyInjectionBlock();
 	}
 

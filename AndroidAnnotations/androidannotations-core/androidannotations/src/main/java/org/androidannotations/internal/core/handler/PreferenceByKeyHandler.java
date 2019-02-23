@@ -74,7 +74,7 @@ public class PreferenceByKeyHandler extends BaseAnnotationHandler<HasPreferences
 	}
 
 	@Override
-	public JBlock getInvocationBlock(HasPreferences holder) {
+	public JBlock getInvocationBlock(Element element, HasPreferences holder) {
 		return holder.getAddPreferencesFromResourceInjectionBlock();
 	}
 

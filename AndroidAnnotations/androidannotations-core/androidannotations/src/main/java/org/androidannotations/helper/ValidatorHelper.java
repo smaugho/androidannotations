@@ -61,6 +61,8 @@ import org.androidannotations.annotations.EView;
 import org.androidannotations.annotations.EViewGroup;
 import org.androidannotations.annotations.Trace;
 import org.androidannotations.annotations.ViewById;
+import org.androidannotations.annotations.export.Export;
+import org.androidannotations.annotations.export.Exported;
 import org.androidannotations.internal.core.model.AndroidSystemServices;
 import org.androidannotations.internal.model.AnnotationElements;
 
@@ -79,11 +81,13 @@ public class ValidatorHelper {
 	private final ParcelerHelper parcelerHelper;
 
 	public final ValidatorParameterHelper param;
+	public final ADIHelper adiHelper;
 
 	public ValidatorHelper(TargetAnnotationHelper targetAnnotationHelper) {
 		annotationHelper = targetAnnotationHelper;
 		param = new ValidatorParameterHelper(annotationHelper);
 		parcelerHelper = new ParcelerHelper(environment());
+		adiHelper = new ADIHelper(environment());
 	}
 
 	protected AndroidAnnotationsEnvironment environment() {
@@ -239,6 +243,14 @@ public class ValidatorHelper {
 	public void doesNotHaveAnyOfSupportedAnnotations(Element element, ElementValidation validation) {
 		Set<String> supportedAnnotationTypes = environment().getSupportedAnnotationTypes();
 		for (AnnotationMirror annotationMirror : element.getAnnotationMirrors()) {
+
+			if (annotationMirror.getAnnotationType().toString().equals(Exported.class.getCanonicalName())) {
+				continue;
+			}
+			if (annotationMirror.getAnnotationType().toString().equals(Export.class.getCanonicalName())) {
+				continue;
+			}
+
 			if (supportedAnnotationTypes.contains(annotationMirror.getAnnotationType().toString())) {
 				validation.addError(element, "method injection does only allow the annotation to be placed on the method OR on each parameter.");
 				break;
@@ -250,7 +262,7 @@ public class ValidatorHelper {
 
 		boolean foundAnnotation = false;
 		for (Class<? extends Annotation> validAnnotation : validAnnotations) {
-			if (element.getAnnotation(validAnnotation) != null) {
+			if (adiHelper.hasAnnotation(element, validAnnotation)) {
 				foundAnnotation = true;
 				break;
 			}
@@ -290,7 +302,7 @@ public class ValidatorHelper {
 
 	public void elementHasAnnotation(Class<? extends Annotation> annotation, Element element, ElementValidation valid, String error) {
 		if (!elementHasAnnotation(annotation, element)) {
-			if (element.getAnnotation(annotation) == null) {
+			if (!adiHelper.hasAnnotation(element, annotation)) {
 				valid.addError("%s " + error + " @" + annotation.getName());
 			}
 		}
@@ -379,7 +391,7 @@ public class ValidatorHelper {
 				return true;
 			}
 		}
-		return false;
+		return environment().getADIOnElement(element).contains(annotation);
 	}
 
 	public int numberOfElementParameterHasAnnotation(ExecutableElement element, Class<? extends Annotation> annotation) {

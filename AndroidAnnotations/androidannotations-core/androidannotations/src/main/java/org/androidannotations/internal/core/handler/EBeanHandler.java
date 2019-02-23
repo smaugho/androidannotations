@@ -16,8 +16,15 @@
  */
 package org.androidannotations.internal.core.handler;
 
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+
 import javax.lang.model.element.Element;
+import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.type.TypeMirror;
 
 import org.androidannotations.AndroidAnnotationsEnvironment;
 import org.androidannotations.ElementValidation;
@@ -26,6 +33,8 @@ import org.androidannotations.handler.BaseGeneratingAnnotationHandler;
 import org.androidannotations.holder.EBeanHolder;
 
 public class EBeanHandler extends BaseGeneratingAnnotationHandler<EBeanHolder> {
+
+	private static Map<String, List<String>> implementations = new HashMap<>();
 
 	public EBeanHandler(AndroidAnnotationsEnvironment environment) {
 		super(EBean.class, environment);
@@ -45,11 +54,34 @@ public class EBeanHandler extends BaseGeneratingAnnotationHandler<EBeanHolder> {
 		validatorHelper.isNotPrivate(element, valid);
 
 		validatorHelper.isAbstractOrHasEmptyOrContextConstructor(element, valid);
+
+		registerImplementationsFor(element, ((TypeElement) element).getQualifiedName().toString());
+
+	}
+
+	private void registerImplementationsFor(Element element, String implementationClassName) {
+
+		List<? extends TypeMirror> superTypes = getProcessingEnvironment().getTypeUtils().directSupertypes(element.asType());
+		for (TypeMirror type : superTypes) {
+
+			TypeElement superElement = getProcessingEnvironment().getElementUtils().getTypeElement(type.toString());
+			if (superElement == null || superElement.asType().toString().equals(Object.class.getCanonicalName())) {
+				continue;
+			}
+
+			if (superElement.getKind().equals(ElementKind.INTERFACE)) {
+				putImplementationFor(superElement.getQualifiedName().toString(), implementationClassName);
+			}
+
+			registerImplementationsFor(superElement, implementationClassName);
+		}
+
 	}
 
 	@Override
 	public void process(Element element, EBeanHolder holder) {
-		EBean eBeanAnnotation = element.getAnnotation(EBean.class);
+
+		EBean eBeanAnnotation = adiHelper.getAnnotation(element, EBean.class);
 		EBean.Scope eBeanScope = eBeanAnnotation.scope();
 		boolean hasSingletonScope = eBeanScope == EBean.Scope.Singleton;
 
@@ -60,4 +92,18 @@ public class EBeanHandler extends BaseGeneratingAnnotationHandler<EBeanHolder> {
 			holder.createRebindMethod();
 		}
 	}
+
+	public static List<String> getImplementationsFor(String className) {
+		return implementations.get(className);
+	}
+
+	public static void putImplementationFor(String className, String implementationClassName) {
+		List<String> implementations = getImplementationsFor(className);
+		if (implementations == null) {
+			implementations = new LinkedList<>();
+			EBeanHandler.implementations.put(className, implementations);
+		}
+		implementations.add(implementationClassName);
+	}
+
 }

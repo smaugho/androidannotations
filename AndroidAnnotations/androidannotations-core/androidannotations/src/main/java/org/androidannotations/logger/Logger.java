@@ -19,6 +19,8 @@ package org.androidannotations.logger;
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
 
+import org.androidannotations.internal.virtual.VirtualElement;
+
 public class Logger {
 
 	private final LoggerContext loggerContext;
@@ -66,6 +68,14 @@ public class Logger {
 	}
 
 	public void error(Element element, Throwable thr, String message, Object... args) {
+		
+		if (thr != null) {
+			System.out.println("Something went wrong in the annotation processor");
+			System.out.println("--------------------");
+			thr.printStackTrace();
+			System.out.println("--------------------");
+		}
+		
 		log(Level.ERROR, message, element, null, thr, args);
 	}
 
@@ -82,7 +92,11 @@ public class Logger {
 			return;
 		}
 
-		loggerContext.writeLog(level, name, message, element, annotationMirror, thr, args);
+		if (element instanceof VirtualElement) {
+			loggerContext.writeLog(level, name, message, ((VirtualElement) element).getElement(), annotationMirror, thr, args);
+		} else {
+			loggerContext.writeLog(level, name, message, element, annotationMirror, thr, args);
+		}
 	}
 
 }
